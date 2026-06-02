@@ -28,8 +28,13 @@ export const adminLogin = async (req, res) => {
       });
     }
 
-    const jwtSecret =
-      process.env.JWT_SECRET || "student-performance-secret-key";
+    const jwtSecret = process.env.JWT_SECRET;
+
+    if (!jwtSecret) {
+      return res.status(500).json({
+        message: "Server configuration error: JWT_SECRET is not set",
+      });
+    }
 
     const token = jwt.sign({ id: admin._id }, jwtSecret, {
       expiresIn: "1d",

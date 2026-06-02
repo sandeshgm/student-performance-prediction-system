@@ -75,6 +75,12 @@ const studentSchema = new mongoose.Schema(
           enum: ["Low", "Medium", "High"],
           default: "Low",
         },
+        remarks: {
+          type: String,
+          enum: ["Pass", "Fail"],
+          default: "Fail",
+          trim: true,
+        },
       },
     ],
     facultyRemarks: {
