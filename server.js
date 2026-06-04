@@ -49,7 +49,7 @@ const corsOptions = {
 };
 
 // ✅ Handle preflight requests for all routes
-app.options("*", cors(corsOptions));
+app.options(/.*/, cors(corsOptions));
 
 // Middlewares
 app.use(cors(corsOptions));
