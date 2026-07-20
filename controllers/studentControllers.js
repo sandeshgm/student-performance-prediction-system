@@ -15,6 +15,8 @@ CREATE STUDENT
 POST /api/students
 */
 export const addStudent = async (req, res) => {
+  console.log("========== Incoming Data ==========");
+  console.log(JSON.stringify(req.body, null, 2));
   try {
     const validationErrors = validateStudentInput(req.body);
 
@@ -31,7 +33,11 @@ export const addStudent = async (req, res) => {
     res.status(201).json({
       success: true,
       message: "Student added successfully.",
-      data: student,
+      data: {
+        id: student._id,
+        firstName: student.firstName,
+        lastName: student.lastName,
+      },
     });
   } catch (error) {
     handleStudentError(error, res);

@@ -13,7 +13,7 @@ const __dirname = path.dirname(__filename);
 export const predictPerformanceRaw = (features) => {
   return new Promise((resolve, reject) => {
     const scriptPath = path.join(__dirname, "../ml/predict.py");
-    
+
     // Spawn python process
     const pythonProcess = spawn("python", [
       scriptPath,
@@ -33,13 +33,18 @@ export const predictPerformanceRaw = (features) => {
 
     pythonProcess.on("close", (code) => {
       if (code !== 0) {
-        reject(new Error(`Python predict.py exited with code ${code}. Error: ${stderr.trim()}`));
+        reject(
+          new Error(
+            `Python predict.py exited with code ${code}. Error: ${stderr.trim()}`,
+          ),
+        );
       } else {
         const parts = stdout.trim().split(",");
         const prediction = parts[0] || "Average";
-        const confidence = parseFloat(parts[1]) !== undefined && !isNaN(parseFloat(parts[1]))
-          ? parseFloat(parts[1])
-          : 1.0;
+        const confidence =
+          parseFloat(parts[1]) !== undefined && !isNaN(parseFloat(parts[1]))
+            ? parseFloat(parts[1])
+            : 1.0;
         resolve({ prediction, confidence });
       }
     });
@@ -53,15 +58,29 @@ export const predictPerformanceRaw = (features) => {
  */
 const getScaledBehaviour = (behaviourData) => {
   if (!behaviourData) return 60; // Default fallback to medium behavior (e.g., all 3s -> sum 18 -> 60%)
-  
-  const discipline = behaviourData.discipline !== undefined ? behaviourData.discipline : 3;
-  const communication = behaviourData.communication !== undefined ? behaviourData.communication : 3;
-  const teamwork = behaviourData.teamwork !== undefined ? behaviourData.teamwork : 3;
-  const participation = behaviourData.participation !== undefined ? behaviourData.participation : 3;
-  const homeworkCompletion = behaviourData.homeworkCompletion !== undefined ? behaviourData.homeworkCompletion : 3;
-  const punctuality = behaviourData.punctuality !== undefined ? behaviourData.punctuality : 3;
 
-  const sum = discipline + communication + teamwork + participation + homeworkCompletion + punctuality;
+  const discipline =
+    behaviourData.discipline !== undefined ? behaviourData.discipline : 3;
+  const communication =
+    behaviourData.communication !== undefined ? behaviourData.communication : 3;
+  const teamwork =
+    behaviourData.teamwork !== undefined ? behaviourData.teamwork : 3;
+  const participation =
+    behaviourData.participation !== undefined ? behaviourData.participation : 3;
+  const homeworkCompletion =
+    behaviourData.homeworkCompletion !== undefined
+      ? behaviourData.homeworkCompletion
+      : 3;
+  const punctuality =
+    behaviourData.punctuality !== undefined ? behaviourData.punctuality : 3;
+
+  const sum =
+    discipline +
+    communication +
+    teamwork +
+    participation +
+    homeworkCompletion +
+    punctuality;
   return (sum / 30) * 100;
 };
 
@@ -88,23 +107,78 @@ const getGradeFromPercentage = (pct) => {
 };
 
 /**
+ * Generates subject-wise improvement suggestions
+ * based on predicted performance.
+ */
+const getSubjectImprovement = (prediction) => {
+  switch (prediction) {
+    case "Poor":
+      return {
+        level: "Poor",
+        suggestions: [
+          "Requires immediate academic attention.",
+          "Revise the subject daily and strengthen basic concepts.",
+          "Solve additional practice questions and attend extra support classes.",
+        ],
+      };
+
+    case "Average":
+      return {
+        level: "Average",
+        suggestions: [
+          "Focus on weak topics through regular revision.",
+          "Practice more numerical and theoretical questions.",
+          "Improve consistency in assignments and class participation.",
+        ],
+      };
+
+    case "Good":
+      return {
+        level: "Good",
+        suggestions: [
+          "Maintain the current level of performance.",
+          "Practice advanced questions to improve further.",
+          "Continue regular revision and active classroom participation.",
+        ],
+      };
+
+    case "Excellent":
+      return {
+        level: "Excellent",
+        suggestions: [
+          "Excellent performance. Keep up the good work.",
+          "Explore advanced concepts related to this subject.",
+          "Maintain consistency and continue helping classmates through discussions.",
+        ],
+      };
+
+    default:
+      return {
+        level: "Average",
+        suggestions: ["Continue studying regularly."],
+      };
+  }
+};
+
+/**
  * Predicts performance for an individual subject
  */
 export const predictSubjectPerformance = async (student, subject) => {
   const attendance = student.attendance !== undefined ? student.attendance : 0;
-  const gpa = (student.previousSemester && student.previousSemester.gpa !== undefined) 
-    ? student.previousSemester.gpa 
-    : 0;
-  
+  const gpa =
+    student.previousSemester && student.previousSemester.gpa !== undefined
+      ? student.previousSemester.gpa
+      : 0;
+
   // Scale marks out of 100 as expected by the ML model (max internal=20, assignment=20, terminal=60)
   const internal = (subject.internalMarks || 0) * (100 / 20);
   const assignment = (subject.assignmentMarks || 0) * (100 / 20);
   const terminal = (subject.terminalExamMarks || 0) * (100 / 60);
-  
+
   const behaviour = getScaledBehaviour(student.behaviour);
 
   const features = [attendance, gpa, internal, assignment, terminal, behaviour];
-  
+
   const { prediction } = await predictPerformanceRaw(features);
   return prediction;
 };
@@ -114,16 +188,18 @@ export const predictSubjectPerformance = async (student, subject) => {
  */
 export const predictOverallPerformance = async (student) => {
   const attendance = student.attendance !== undefined ? student.attendance : 0;
-  const gpa = (student.previousSemester && student.previousSemester.gpa !== undefined) 
-    ? student.previousSemester.gpa 
-    : 0;
-  
+  const gpa =
+    student.previousSemester && student.previousSemester.gpa !== undefined
+      ? student.previousSemester.gpa
+      : 0;
+
   let totalInternal = 0;
   let totalAssignment = 0;
   let totalTerminal = 0;
-  const count = student.currentSubjects && student.currentSubjects.length > 0 
-    ? student.currentSubjects.length 
-    : 1;
+  const count =
+    student.currentSubjects && student.currentSubjects.length > 0
+      ? student.currentSubjects.length
+      : 1;
 
   if (student.currentSubjects && student.currentSubjects.length > 0) {
     student.currentSubjects.forEach((sub) => {
@@ -141,7 +217,7 @@ export const predictOverallPerformance = async (student) => {
   const behaviour = getScaledBehaviour(student.behaviour);
 
   const features = [attendance, gpa, internal, assignment, terminal, behaviour];
-  
+
   return await predictPerformanceRaw(features);
 };
 
@@ -156,22 +232,42 @@ export const getStructuredReport = (student) => {
   const semester = student.semester || "N/A";
   const attendance = student.attendance !== undefined ? student.attendance : 0;
   const behaviorText = getBehaviourText(student.behaviour);
-  
-  const overallPercentage = student.averageMarks !== undefined ? student.averageMarks : 0;
+
+  const overallPercentage =
+    student.averageMarks !== undefined ? student.averageMarks : 0;
   const overallGrade = getGradeFromPercentage(overallPercentage);
   const predictedResult = student.predictedPerformance || "Average";
   const riskLevel = student.riskLevel || "Medium";
-  const confidencePercent = student.confidence !== undefined ? Math.round(student.confidence * 100) : 80;
+  const confidencePercent =
+    student.confidence !== undefined
+      ? Math.round(student.confidence * 100)
+      : 80;
 
   // Determine areas needing improvement
+  // const improvements = [];
+  // if (student.currentSubjects && student.currentSubjects.length > 0) {
+  //   student.currentSubjects.forEach((sub) => {
+  //     if (sub.predictedPerformance === "Poor" || sub.predictedPerformance === "Average") {
+  //       improvements.push(`Improve ${sub.subjectName} practical skills.`);
+  //     }
+  //   });
+  // }
+
+  // Subject-wise improvement report
   const improvements = [];
+
   if (student.currentSubjects && student.currentSubjects.length > 0) {
     student.currentSubjects.forEach((sub) => {
-      if (sub.predictedPerformance === "Poor" || sub.predictedPerformance === "Average") {
-        improvements.push(`Improve ${sub.subjectName} practical skills.`);
-      }
+      const recommendation = getSubjectImprovement(sub.predictedPerformance);
+
+      improvements.push({
+        subject: sub.subjectName,
+        performance: recommendation.level,
+        suggestions: recommendation.suggestions,
+      });
     });
   }
+
   if (attendance < 85) {
     improvements.push(`Focus on improving classroom attendance.`);
   } else if (attendance < 95) {
@@ -191,8 +287,13 @@ export const getStructuredReport = (student) => {
   const strengths = [];
   if (student.currentSubjects && student.currentSubjects.length > 0) {
     student.currentSubjects.forEach((sub) => {
-      if (sub.predictedPerformance === "Excellent" || sub.predictedPerformance === "Good") {
-        strengths.push(`Excellent ${sub.subjectName.replace("Advanced ", "")} performance.`);
+      if (
+        sub.predictedPerformance === "Excellent" ||
+        sub.predictedPerformance === "Good"
+      ) {
+        strengths.push(
+          `Excellent ${sub.subjectName.replace("Advanced ", "")} performance.`,
+        );
       }
     });
   }
@@ -206,7 +307,7 @@ export const getStructuredReport = (student) => {
     strengths.push("Active participation in class.");
   }
 
-  const passOrFail = (predictedResult === "Poor") ? "FAIL" : "PASS";
+  const passOrFail = predictedResult === "Poor" ? "FAIL" : "PASS";
   const finalDecisionText = `Student is expected to ${passOrFail} the upcoming examination if their academic performance remains at the current ${predictedResult.toUpperCase()} level.`;
 
   return {
@@ -249,55 +350,55 @@ export const getStructuredReport = (student) => {
 export const printPerformanceReport = (student) => {
   const report = getStructuredReport(student);
 
-  console.log("STUDENT PERFORMANCE REPORT");
-  console.log("");
-  console.log(`Student Name      : ${report.student.name}`);
-  console.log(`Roll No           : ${report.student.rollNo}`);
-  console.log(`Department        : ${report.student.department}`);
-  console.log(`Semester          : ${report.student.semester}`);
-  console.log("");
-  console.log("CURRENT PERFORMANCE");
-  console.log(`Attendance         : ${report.currentPerformance.attendance}%`);
-  console.log(`Behavior           : ${report.currentPerformance.behavior}`);
-  console.log(`Overall Percentage : ${report.currentPerformance.overallPercentage.toFixed(2)}%`);
-  console.log(`Overall Grade      : ${report.currentPerformance.overallGrade}`);
-  console.log(`Predicted Result   : ${report.currentPerformance.predictedResult}`);
-  console.log(`Risk Level         : ${report.currentPerformance.riskLevel}`);
-  console.log("");
-  console.log("SUBJECT-WISE PERFORMANCE");
+  //   console.log("STUDENT PERFORMANCE REPORT");
+  //   console.log("");
+  //   console.log(`Student Name      : ${report.student.name}`);
+  //   console.log(`Roll No           : ${report.student.rollNo}`);
+  //   console.log(`Department        : ${report.student.department}`);
+  //   console.log(`Semester          : ${report.student.semester}`);
+  //   console.log("");
+  //   console.log("CURRENT PERFORMANCE");
+  //   console.log(`Attendance         : ${report.currentPerformance.attendance}%`);
+  //   console.log(`Behavior           : ${report.currentPerformance.behavior}`);
+  //   console.log(`Overall Percentage : ${report.currentPerformance.overallPercentage.toFixed(2)}%`);
+  //   console.log(`Overall Grade      : ${report.currentPerformance.overallGrade}`);
+  //   console.log(`Predicted Result   : ${report.currentPerformance.predictedResult}`);
+  //   console.log(`Risk Level         : ${report.currentPerformance.riskLevel}`);
+  //   console.log("");
+  //   console.log("SUBJECT-WISE PERFORMANCE");
 
-  if (report.subjects && report.subjects.length > 0) {
-    report.subjects.forEach((sub) => {
-      console.log("");
-      console.log(`Subject: ${sub.subjectName}`);
-      console.log(`Percentage          : ${sub.percentage.toFixed(2)}%`);
-      console.log(`Grade               : ${sub.grade}`);
-      console.log(`Prediction          : ${sub.prediction}`);
-    });
-  } else {
-    console.log("No current subjects registered.");
-  }
+  //   if (report.subjects && report.subjects.length > 0) {
+  //     report.subjects.forEach((sub) => {
+  //       console.log("");
+  //       console.log(`Subject: ${sub.subjectName}`);
+  //       console.log(`Percentage          : ${sub.percentage.toFixed(2)}%`);
+  //       console.log(`Grade               : ${sub.grade}`);
+  //       console.log(`Prediction          : ${sub.prediction}`);
+  //     });
+  //   } else {
+  //     console.log("No current subjects registered.");
+  //   }
 
-  console.log("");
-  console.log("FUTURE PERFORMANCE PREDICTION");
-  console.log(`Expected Performance : ${report.futurePrediction.expectedPerformance}`);
-  console.log(`Confidence           : ${report.futurePrediction.confidence}%`);
-  console.log("");
-  console.log("");
-  console.log("AREAS NEEDING IMPROVEMENT");
-  report.improvements.forEach((imp) => {
-    console.log(imp);
-  });
-  console.log("");
-  console.log("");
-  console.log("STRENGTHS");
-  report.strengths.forEach((str) => {
-    console.log(str);
-  });
-  console.log("");
-  console.log("");
-  console.log("FINAL DECISION");
-  console.log("");
-  console.log(report.finalDecision.message);
-  console.log("");
+  //   console.log("");
+  //   console.log("FUTURE PERFORMANCE PREDICTION");
+  //   console.log(`Expected Performance : ${report.futurePrediction.expectedPerformance}`);
+  //   console.log(`Confidence           : ${report.futurePrediction.confidence}%`);
+  //   console.log("");
+  //   console.log("");
+  //   console.log("AREAS NEEDING IMPROVEMENT");
+  //   report.improvements.forEach((imp) => {
+  //     console.log(imp);
+  //   });
+  //   console.log("");
+  //   console.log("");
+  //   console.log("STRENGTHS");
+  //   report.strengths.forEach((str) => {
+  //     console.log(str);
+  //   });
+  //   console.log("");
+  //   console.log("");
+  //   console.log("FINAL DECISION");
+  //   console.log("");
+  //   console.log(report.finalDecision.message);
+  //   console.log("");
 };
