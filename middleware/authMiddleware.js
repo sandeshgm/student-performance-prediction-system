@@ -2,6 +2,8 @@ import jwt from "jsonwebtoken";
 import Admin from "../models/Admin.js";
 
 export const protect = async (req, res, next) => {
+  console.log("===== PROTECT =====");
+  console.log(req.headers.authorization);
   try {
     //console.log("Received Authorization Header:", req.headers.authorization);
     const authHeader = req.headers.authorization || "";

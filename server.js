@@ -15,44 +15,27 @@ dotenv.config({ path: resolve(__dirname, ".env") });
 
 const app = express();
 
-const allowedOrigins = (
-  process.env.CORS_ORIGINS ||
-  process.env.FRONTEND_URL ||
-  ""
-)
-  .split(",")
-  .map((origin) => origin.trim())
-  .filter(Boolean);
-
-const localOrigins = [
-  "http://localhost:3000",
-  "http://localhost:5173",
-  "http://localhost:8080",
-  "http://127.0.0.1:3000",
-  "http://127.0.0.1:5173",
-  "http://127.0.0.1:8080",
-];
-
-const corsOrigins = new Set([...allowedOrigins, ...localOrigins]);
-
 const corsOptions = {
   origin(origin, callback) {
-    // Allow requests with no origin (mobile apps, Postman, curl)
-    if (!origin || corsOrigins.has(origin)) {
-      return callback(null, true);
-    }
-    return callback(new Error(`CORS blocked for origin: ${origin}`));
+    // Dynamically allow any origin (needed for ngrok and different developer laptops)
+    callback(null, true);
   },
-  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"],
   credentials: true,
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  allowedHeaders: [
+    "Content-Type",
+    "Authorization",
+    "ngrok-skip-browser-warning",
+  ],
 };
+
+// ✅ Enable CORS with options
+app.use(cors(corsOptions));
 
 // ✅ Handle preflight requests for all routes
 app.options(/.*/, cors(corsOptions));
 
 // Middlewares
-app.use(cors(corsOptions));
 app.use(express.json());
 
 // Routes

@@ -49,6 +49,8 @@ GET ALL STUDENTS
 GET /api/students
 */
 export const getStudents = async (req, res) => {
+  console.log("===== GET STUDENTS =====");
+  console.log(req.headers.authorization);
   try {
     const { filter, errors } = buildStudentFilter(req.query);
 
