@@ -29,10 +29,8 @@ const corsOptions = {
   ],
 };
 
-// ✅ Enable CORS with options
 app.use(cors(corsOptions));
 
-// ✅ Handle preflight requests for all routes
 app.options(/.*/, cors(corsOptions));
 
 // Middlewares

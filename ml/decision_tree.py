@@ -113,6 +113,22 @@ class DecisionTree:
 
         print(indent + "Right:", end=" ")
         self.print_tree(tree.right, indent + "  ")
-    
 
-    
+    def get_feature_importances(self):
+        importances = np.zeros(self.n_features)
+
+        def traverse(node):
+            if node is None or node.value is not None:
+                return
+            if node.feature_index is not None and node.information_gain is not None:
+                importances[node.feature_index] += node.information_gain
+            traverse(node.left)
+            traverse(node.right)
+
+        traverse(self.root)
+
+        total_importance = np.sum(importances)
+        if total_importance > 0:
+            importances = importances / total_importance
+
+        return importances.tolist()

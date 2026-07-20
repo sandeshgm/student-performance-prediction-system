@@ -7,6 +7,12 @@ import {
   validateStudentInput,
 } from "../utils/studentHelpers.js";
 import { getStructuredReport } from "../utils/mlPredictor.js";
+import fs from "fs/promises";
+import path from "path";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const isValidObjectId = (id) => mongoose.Types.ObjectId.isValid(id);
 
@@ -260,3 +266,174 @@ export const getStudentReport = async (req, res) => {
     handleStudentError(error, res);
   }
 };
+
+/*
+GET Top 5 students performance report
+ GET /api/reports/top-performerst
+*/
+export const getTopPerformers = async (req, res) => {
+  try {
+    const limit = Number(req.query.limit) || 5;
+
+    // Fetch all students
+    const students = await Student.find();
+
+    // Prepare report data
+    const report = students.map((student) => ({
+      _id: student._id,
+      studentId: student.studentId,
+      rollNo: student.rollNo,
+      name: `${student.firstName} ${student.lastName}`,
+      firstName: student.firstName,
+      lastName: student.lastName,
+      gender: student.gender,
+      department: student.department,
+      semester: student.semester,
+      attendance: student.attendance,
+      averageMarks: student.averageMarks,
+      predictedPerformance: student.predictedPerformance,
+      confidence: student.confidence,
+      riskLevel: student.riskLevel,
+    }));
+
+    // Ranking order for predicted performance
+    const performanceRank = {
+      Excellent: 5,
+      "Very Good": 4,
+      Good: 3,
+      Average: 2,
+      Poor: 1,
+    };
+
+    // Sort by prediction first, then by average marks
+    report.sort((a, b) => {
+      const rankA = performanceRank[a.predictedPerformance] || 0;
+      const rankB = performanceRank[b.predictedPerformance] || 0;
+
+      if (rankA !== rankB) {
+        return rankB - rankA;
+      }
+
+      return b.averageMarks - a.averageMarks;
+    });
+
+    // Get top N students
+    const topStudents = report.slice(0, limit).map((student, index) => ({
+      rank: index + 1,
+      ...student,
+    }));
+
+    res.status(200).json({
+      success: true,
+      generatedAt: new Date(),
+      totalStudents: report.length,
+      count: topStudents.length,
+      students: topStudents,
+    });
+  } catch (error) {
+    console.error("Top Performers Error:", error);
+
+    res.status(500).json({
+      success: false,
+      message: "Failed to generate top performers report.",
+      error: error.message,
+    });
+  }
+};
+
+/*
+GET FEATURE IMPORTANCES
+GET /api/students/feature-importance
+*/
+export const getFeatureImportance = async (req, res) => {
+  try {
+    const filePath = path.join(__dirname, "../ml/importance.json");
+    const data = await fs.readFile(filePath, "utf-8");
+    const importances = JSON.parse(data);
+
+    res.status(200).json({
+      success: true,
+      data: importances,
+    });
+  } catch (error) {
+    console.error("Feature Importance Error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to read feature importances.",
+      error: error.message,
+    });
+  }
+};
+
+/*
+UPDATE FEATURE IMPORTANCES AND RETRAIN MODEL
+PUT /api/students/feature-importance
+*/
+export const updateFeatureImportance = async (req, res) => {
+  try {
+    const { attendance, gpa, internal, assignment, terminal, behaviour } = req.body;
+
+    // Validate that all weights are present and are numbers >= 0
+    const weights = { attendance, gpa, internal, assignment, terminal, behaviour };
+    const missingOrInvalid = [];
+
+    for (const [key, val] of Object.entries(weights)) {
+      if (val === undefined || typeof val !== "number" || val < 0) {
+        missingOrInvalid.push(key);
+      }
+    }
+
+    if (missingOrInvalid.length > 0) {
+      return res.status(400).json({
+        success: false,
+        message: `Missing or invalid weights for: ${missingOrInvalid.join(", ")}. Values must be non-negative numbers.`,
+      });
+    }
+
+    // Save custom weights to importance.json
+    const filePath = path.join(__dirname, "../ml/importance.json");
+    await fs.writeFile(filePath, JSON.stringify(weights, null, 4), "utf-8");
+
+    // Execute retraining pipeline
+    const { exec } = await import("child_process");
+    const util = await import("util");
+    const execPromise = util.promisify(exec);
+
+    try {
+      console.log("Running retraining pipeline...");
+      // Run ml:setup script (regenerate dataset and retrain model)
+      await execPromise("npm run ml:setup");
+      console.log("Retraining completed successfully.");
+    } catch (trainError) {
+      console.error("Model retraining failed:", trainError);
+      return res.status(500).json({
+        success: false,
+        message: "Failed to retrain model after updating percentages.",
+        error: trainError.message,
+      });
+    }
+
+    // Recalculate predictions for all students in the database
+    console.log("Recalculating predictions for all students...");
+    const students = await Student.find();
+    for (const student of students) {
+      // Trigger pre-save hooks to predict and update
+      await student.save();
+    }
+    console.log(`Successfully updated predictions for ${students.length} students.`);
+
+    res.status(200).json({
+      success: true,
+      message: "Feature importances updated, model retrained, and all student predictions recalculated.",
+      data: weights,
+    });
+  } catch (error) {
+    console.error("Update Feature Importance Error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to update feature importances.",
+      error: error.message,
+    });
+  }
+};
+
