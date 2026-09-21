@@ -7,7 +7,11 @@ const PreviousSemesterSchema = new mongoose.Schema({
     max: 8,
   },
 
-  gpa: Number,
+  gpa: {
+    type: Number,
+    min: 0,
+    max: 4,
+  },
 
   percentage: Number,
 

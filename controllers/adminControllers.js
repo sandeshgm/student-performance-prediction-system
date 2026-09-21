@@ -2,6 +2,9 @@ import Admin from "../models/Admin.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
+const DUMMY_HASH =
+  "$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy";
+
 export const adminLogin = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -13,18 +16,14 @@ export const adminLogin = async (req, res) => {
     }
 
     const admin = await Admin.findOne({ email: email.trim().toLowerCase() });
+    const passwordMatches = await bcrypt.compare(
+      password,
+      admin?.password || DUMMY_HASH,
+    );
 
-    if (!admin) {
-      return res.status(400).json({
-        message: "Admin not found",
-      });
-    }
-
-    const isMatch = await bcrypt.compare(password, admin.password);
-
-    if (!isMatch) {
-      return res.status(400).json({
-        message: "Invalid password",
+    if (!admin || !passwordMatches) {
+      return res.status(401).json({
+        message: "Invalid email or password",
       });
     }
 
@@ -32,7 +31,7 @@ export const adminLogin = async (req, res) => {
 
     if (!jwtSecret) {
       return res.status(500).json({
-        message: "Server configuration error: JWT_SECRET is not set",
+        message: "Server configuration error",
       });
     }
 
@@ -45,8 +44,9 @@ export const adminLogin = async (req, res) => {
       token,
     });
   } catch (error) {
+    console.error(error);
     return res.status(500).json({
-      message: error.message,
+      message: "Something went wrong.",
     });
   }
 };

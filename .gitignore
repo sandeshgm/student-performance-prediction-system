@@ -4,6 +4,17 @@ node_modules/
 # Environment files
 .env
 .env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# Leftover pickle at repo root (the trained model lives in ml/model.pkl)
+/model.pkl
 
 # Build outputs
 dist/

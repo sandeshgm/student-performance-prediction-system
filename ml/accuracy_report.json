@@ -1,37 +1,41 @@
 {
     "algorithm": "Decision Tree (from scratch)",
-    "max_depth": 8,
-    "dataset_path": "C:\\Users\\sandesh gm\\Desktop\\student-performance-backend\\dataset.csv",
+    "dataset_type": "synthetic",
+    "labeling": "class_conditional_with_weight_controlled_overlap",
+    "max_depth": 10,
+    "dataset_path": "dataset.csv",
     "total_samples": 3000,
-    "train_samples": 2400,
-    "test_samples": 600,
-    "correct_predictions": 572,
-    "test_accuracy": 0.9533,
-    "test_accuracy_percent": 95.33,
+    "train_samples": 1918,
+    "validation_samples": 481,
+    "test_samples": 601,
+    "validation_accuracy_percent": 70.89,
+    "test_accuracy": 0.6922,
+    "test_accuracy_percent": 69.22,
+    "correct_predictions": 416,
     "confusion_matrix": [
         [
-            145,
-            5,
-            0,
+            113,
+            28,
+            1,
             0
         ],
         [
-            12,
-            134,
-            4,
-            0
+            47,
+            94,
+            14,
+            5
+        ],
+        [
+            2,
+            25,
+            97,
+            34
         ],
         [
             0,
-            4,
-            146,
-            0
-        ],
-        [
-            0,
-            0,
-            3,
-            147
+            6,
+            23,
+            112
         ]
     ],
     "labels": [

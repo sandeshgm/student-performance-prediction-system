@@ -1,28 +1,44 @@
 import mongoose from "mongoose";
+import { exec } from "child_process";
+import { promisify } from "util";
+import fs from "fs/promises";
+import path from "path";
+import { fileURLToPath } from "url";
+
 import Student from "../models/Student.js";
 import {
   applyStudentCalculations,
   buildStudentFilter,
   handleStudentError,
+  parsePagination,
   validateStudentInput,
 } from "../utils/studentHelpers.js";
-import { getStructuredReport } from "../utils/mlPredictor.js";
-import fs from "fs/promises";
-import path from "path";
-import { fileURLToPath } from "url";
+import {
+  applyMlPredictions,
+  getStructuredReport,
+  overallFeatures,
+  predictPerformanceBatch,
+  subjectFeatures,
+} from "../utils/mlPredictor.js";
 
+const execPromise = promisify(exec);
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+const projectRoot = path.join(__dirname, "..");
 
 const isValidObjectId = (id) => mongoose.Types.ObjectId.isValid(id);
 
-/*
-CREATE STUDENT
-POST /api/students
-*/
+const toPublicStudent = (student) => {
+  const data = typeof student.toObject === "function" ? student.toObject() : { ...student };
+  const rollNo = data.rollNo;
+  return {
+    ...data,
+    studentId: rollNo,
+    name: `${data.firstName || ""} ${data.lastName || ""}`.trim(),
+  };
+};
+
 export const addStudent = async (req, res) => {
-  console.log("========== Incoming Data ==========");
-  console.log(JSON.stringify(req.body, null, 2));
   try {
     const validationErrors = validateStudentInput(req.body);
 
@@ -50,13 +66,7 @@ export const addStudent = async (req, res) => {
   }
 };
 
-/*
-GET ALL STUDENTS
-GET /api/students
-*/
 export const getStudents = async (req, res) => {
-  console.log("===== GET STUDENTS =====");
-  console.log(req.headers.authorization);
   try {
     const { filter, errors } = buildStudentFilter(req.query);
 
@@ -67,29 +77,25 @@ export const getStudents = async (req, res) => {
       });
     }
 
-    const students = await Student.find(filter).sort({
-      createdAt: -1,
-    });
+    const { page, limit, skip } = parsePagination(req.query);
+    const [students, total] = await Promise.all([
+      Student.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit),
+      Student.countDocuments(filter),
+    ]);
 
     res.status(200).json({
       success: true,
       count: students.length,
+      total,
+      page,
+      limit,
       data: students,
     });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({
-      success: false,
-      message: error.message,
-      stack: error.stack,
-    });
+    handleStudentError(error, res);
   }
 };
 
-/*
-GET STUDENT BY ID
-GET /api/students/:id
-*/
 export const getStudentById = async (req, res) => {
   try {
     if (!isValidObjectId(req.params.id)) {
@@ -117,10 +123,6 @@ export const getStudentById = async (req, res) => {
   }
 };
 
-/*
-UPDATE STUDENT
-PUT /api/students/:id
-*/
 export const updateStudent = async (req, res) => {
   try {
     if (!isValidObjectId(req.params.id)) {
@@ -162,10 +164,6 @@ export const updateStudent = async (req, res) => {
   }
 };
 
-/*
-DELETE STUDENT
-DELETE /api/students/:id
-*/
 export const deleteStudent = async (req, res) => {
   try {
     if (!isValidObjectId(req.params.id)) {
@@ -193,10 +191,6 @@ export const deleteStudent = async (req, res) => {
   }
 };
 
-/*
-DASHBOARD ANALYTICS
-GET /api/students/dashboard
-*/
 export const getDashboardAnalytics = async (req, res) => {
   try {
     const { filter, errors } = buildStudentFilter(req.query);
@@ -234,10 +228,6 @@ export const getDashboardAnalytics = async (req, res) => {
   }
 };
 
-/*
-GET STRUCTURED PERFORMANCE REPORT FOR FRONTEND
-GET /api/students/:id/report
-*/
 export const getStudentReport = async (req, res) => {
   try {
     if (!isValidObjectId(req.params.id)) {
@@ -256,95 +246,78 @@ export const getStudentReport = async (req, res) => {
       });
     }
 
-    const reportData = getStructuredReport(student);
-
     res.status(200).json({
       success: true,
-      report: reportData,
+      report: getStructuredReport(student),
     });
   } catch (error) {
     handleStudentError(error, res);
   }
 };
 
-/*
-GET Top 5 students performance report
- GET /api/reports/top-performerst
-*/
 export const getTopPerformers = async (req, res) => {
   try {
-    const limit = Number(req.query.limit) || 5;
+    const { limit } = parsePagination(
+      { limit: req.query.limit || 5 },
+      { defaultLimit: 5, maxLimit: 50 },
+    );
 
-    // Fetch all students
-    const students = await Student.find();
+    const [topStudents, totalStudents] = await Promise.all([
+      Student.aggregate([
+        {
+          $addFields: {
+            _rank: {
+              $switch: {
+                branches: [
+                  { case: { $eq: ["$predictedPerformance", "Excellent"] }, then: 4 },
+                  { case: { $eq: ["$predictedPerformance", "Good"] }, then: 3 },
+                  { case: { $eq: ["$predictedPerformance", "Average"] }, then: 2 },
+                  { case: { $eq: ["$predictedPerformance", "Poor"] }, then: 1 },
+                ],
+                default: 0,
+              },
+            },
+          },
+        },
+        { $sort: { _rank: -1, averageMarks: -1 } },
+        { $limit: limit },
+      ]),
+      Student.countDocuments(),
+    ]);
 
-    // Prepare report data
-    const report = students.map((student) => ({
-      _id: student._id,
-      studentId: student.studentId,
-      rollNo: student.rollNo,
-      name: `${student.firstName} ${student.lastName}`,
-      firstName: student.firstName,
-      lastName: student.lastName,
-      gender: student.gender,
-      department: student.department,
-      semester: student.semester,
-      attendance: student.attendance,
-      averageMarks: student.averageMarks,
-      predictedPerformance: student.predictedPerformance,
-      confidence: student.confidence,
-      riskLevel: student.riskLevel,
-    }));
-
-    // Ranking order for predicted performance
-    const performanceRank = {
-      Excellent: 5,
-      "Very Good": 4,
-      Good: 3,
-      Average: 2,
-      Poor: 1,
-    };
-
-    // Sort by prediction first, then by average marks
-    report.sort((a, b) => {
-      const rankA = performanceRank[a.predictedPerformance] || 0;
-      const rankB = performanceRank[b.predictedPerformance] || 0;
-
-      if (rankA !== rankB) {
-        return rankB - rankA;
-      }
-
-      return b.averageMarks - a.averageMarks;
+    const students = topStudents.map((student, index) => {
+      const publicStudent = toPublicStudent(student);
+      return {
+        rank: index + 1,
+        _id: publicStudent._id,
+        studentId: publicStudent.rollNo,
+        rollNo: publicStudent.rollNo,
+        name: publicStudent.name,
+        firstName: publicStudent.firstName,
+        lastName: publicStudent.lastName,
+        gender: publicStudent.gender,
+        department: publicStudent.department,
+        semester: publicStudent.semester,
+        attendance: publicStudent.attendance,
+        averageMarks: publicStudent.averageMarks,
+        predictedPerformance: publicStudent.predictedPerformance,
+        confidence: publicStudent.confidence,
+        riskLevel: publicStudent.riskLevel,
+      };
     });
-
-    // Get top N students
-    const topStudents = report.slice(0, limit).map((student, index) => ({
-      rank: index + 1,
-      ...student,
-    }));
 
     res.status(200).json({
       success: true,
       generatedAt: new Date(),
-      totalStudents: report.length,
-      count: topStudents.length,
-      students: topStudents,
+      totalStudents,
+      count: students.length,
+      students,
     });
   } catch (error) {
-    console.error("Top Performers Error:", error);
-
-    res.status(500).json({
-      success: false,
-      message: "Failed to generate top performers report.",
-      error: error.message,
-    });
+    handleStudentError(error, res);
   }
 };
 
-/*
-GET FEATURE IMPORTANCES
-GET /api/students/feature-importance
-*/
 export const getFeatureImportance = async (req, res) => {
   try {
     const filePath = path.join(__dirname, "../ml/importance.json");
@@ -356,29 +329,54 @@ export const getFeatureImportance = async (req, res) => {
       data: importances,
     });
   } catch (error) {
-    console.error("Feature Importance Error:", error);
-    res.status(500).json({
-      success: false,
-      message: "Failed to read feature importances.",
-      error: error.message,
-    });
+    handleStudentError(error, res);
   }
 };
 
-/*
-UPDATE FEATURE IMPORTANCES AND RETRAIN MODEL
-PUT /api/students/feature-importance
-*/
+const buildPredictionRows = (students) => {
+  const rows = [];
+  const indexMap = [];
+
+  students.forEach((student, studentIndex) => {
+    const subjects = student.currentSubjects || [];
+    subjects.forEach((subject, subjectIndex) => {
+      indexMap.push({ studentIndex, subjectIndex });
+      rows.push(subjectFeatures(student, subject));
+    });
+    indexMap.push({ studentIndex, subjectIndex: null });
+    rows.push(overallFeatures(student));
+  });
+
+  return { rows, indexMap };
+};
+
+const applyBatchPredictions = (students, results, indexMap) => {
+  const grouped = new Map();
+
+  results.forEach((result, index) => {
+    const mapping = indexMap[index];
+    if (!mapping) {
+      return;
+    }
+    if (!grouped.has(mapping.studentIndex)) {
+      grouped.set(mapping.studentIndex, []);
+    }
+    grouped.get(mapping.studentIndex).push(result);
+  });
+
+  grouped.forEach((studentResults, studentIndex) => {
+    applyMlPredictions(students[studentIndex], studentResults);
+  });
+};
+
 export const updateFeatureImportance = async (req, res) => {
   try {
     const { attendance, gpa, internal, assignment, terminal, behaviour } = req.body;
-
-    // Validate that all weights are present and are numbers >= 0
     const weights = { attendance, gpa, internal, assignment, terminal, behaviour };
     const missingOrInvalid = [];
 
     for (const [key, val] of Object.entries(weights)) {
-      if (val === undefined || typeof val !== "number" || val < 0) {
+      if (val === undefined || typeof val !== "number" || !Number.isFinite(val) || val < 0) {
         missingOrInvalid.push(key);
       }
     }
@@ -390,79 +388,93 @@ export const updateFeatureImportance = async (req, res) => {
       });
     }
 
-    // Save custom weights to importance.json
+    if (Object.values(weights).every((value) => value === 0)) {
+      return res.status(400).json({
+        success: false,
+        message: "At least one feature weight must be greater than 0.",
+      });
+    }
+
     const filePath = path.join(__dirname, "../ml/importance.json");
     await fs.writeFile(filePath, JSON.stringify(weights, null, 4), "utf-8");
 
-    // Execute retraining pipeline
-    const { exec } = await import("child_process");
-    const util = await import("util");
-    const execPromise = util.promisify(exec);
-
     try {
-      console.log("Running retraining pipeline...");
-      // Run ml:setup script (regenerate dataset and retrain model)
-      await execPromise("npm run ml:setup");
-      console.log("Retraining completed successfully.");
+      await execPromise("npm run ml:setup", {
+        cwd: projectRoot,
+        timeout: 10 * 60 * 1000,
+      });
     } catch (trainError) {
       console.error("Model retraining failed:", trainError);
       return res.status(500).json({
         success: false,
         message: "Failed to retrain model after updating percentages.",
-        error: trainError.message,
       });
     }
 
-    // Recalculate predictions for all students in the database
-    console.log("Recalculating predictions for all students...");
     const students = await Student.find();
-    for (const student of students) {
-      // Trigger pre-save hooks to predict and update
-      await student.save();
+    if (students.length) {
+      const { rows, indexMap } = buildPredictionRows(students);
+      const results = await predictPerformanceBatch(rows);
+      applyBatchPredictions(students, results, indexMap);
+
+      await Student.bulkWrite(
+        students.map((student) => {
+          applyStudentCalculations(student);
+          return {
+            updateOne: {
+              filter: { _id: student._id },
+              update: {
+                $set: {
+                  currentSubjects: student.currentSubjects,
+                  overallPerformance: student.overallPerformance,
+                  predictedPerformance: student.predictedPerformance,
+                  averageMarks: student.averageMarks,
+                  confidence: student.confidence,
+                  riskLevel: student.riskLevel,
+                },
+              },
+            },
+          };
+        }),
+      );
     }
-    console.log(`Successfully updated predictions for ${students.length} students.`);
 
     res.status(200).json({
       success: true,
-      message: "Feature importances updated, model retrained, and all student predictions recalculated.",
+      message:
+        "Feature importances updated, model retrained, and all student predictions recalculated.",
       data: weights,
     });
   } catch (error) {
-    console.error("Update Feature Importance Error:", error);
-    res.status(500).json({
-      success: false,
-      message: "Failed to update feature importances.",
-      error: error.message,
-    });
+    handleStudentError(error, res);
   }
 };
 
-/*
-GET MODEL ACCURACY REPORT
-GET /api/students/model-accuracy
-*/
 export const getModelAccuracy = async (req, res) => {
   try {
     const filePath = path.join(__dirname, "../ml/accuracy_report.json");
     const data = await fs.readFile(filePath, "utf-8");
     const report = JSON.parse(data);
-
     const accuracyPercent = Number(report.test_accuracy_percent);
 
     res.status(200).json({
       success: true,
-      message: `Model accuracy is ${accuracyPercent}%`,
+      message: `Held-out test accuracy is ${accuracyPercent}% on a synthetic dataset.`,
       data: {
         modelAccuracyPercent: accuracyPercent,
         modelAccuracy: `${accuracyPercent}%`,
+        datasetType: report.dataset_type || "synthetic",
+        labeling: report.labeling,
         algorithm: report.algorithm,
         maxDepth: report.max_depth,
         totalSamples: report.total_samples,
         trainSamples: report.train_samples,
+        validationSamples: report.validation_samples,
         testSamples: report.test_samples,
+        validationAccuracyPercent: report.validation_accuracy_percent,
         correctPredictions: report.correct_predictions,
         labels: report.labels,
-       confusionMatrix: report.confusion_matrix,
+        confusionMatrix: report.confusion_matrix,
       },
     });
   } catch (error) {
@@ -470,16 +482,10 @@ export const getModelAccuracy = async (req, res) => {
       return res.status(404).json({
         success: false,
         message:
-          "Model accuracy report not found. Run 'python ml/train.py' first to generate it.",
+          "Model accuracy report not found. Run 'npm run ml:train' first to generate it.",
       });
     }
 
-    console.error("Model Accuracy Error:", error);
-    res.status(500).json({
-      success: false,
-      message: "Failed to read model accuracy report.",
-      error: error.message,
-    });
+    handleStudentError(error, res);
   }
 };
-

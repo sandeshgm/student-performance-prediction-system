@@ -1,35 +1,55 @@
+import json
 import os
 import sys
+
 import numpy as np
 import pickle
 
-# Resolve model path relative to this script's directory
 script_dir = os.path.dirname(os.path.abspath(__file__))
 model_path = os.path.join(script_dir, "model.pkl")
 
-# LOAD MODEL
 try:
-    with open(model_path, "rb") as f:
-        model = pickle.load(f)
+    with open(model_path, "rb") as file:
+        model = pickle.load(file)
 except FileNotFoundError:
     print("Error: model.pkl not found. Please run ml/train.py first.", file=sys.stderr)
     sys.exit(1)
 
-# Check if arguments are passed from Node/CLI
-if len(sys.argv) >= 7:
-    try:
-        # Features: attendance, gpa, internal, assignment, terminal, behaviour
-        features = [float(x) for x in sys.argv[1:7]]
-        student = np.array([features])
-    except ValueError:
-        print("Error: Invalid feature arguments. Must be numbers.", file=sys.stderr)
-        sys.exit(1)
-else:
-    # SAMPLE STUDENT (fallback)
-    student = np.array([[85, 3.5, 80, 90, 88, 90]])
 
-prediction = model.predict(student)
+def parse_rows():
+    if len(sys.argv) >= 7:
+        try:
+            values = [float(item) for item in sys.argv[1:]]
+        except ValueError:
+            print("Error: Invalid feature arguments. Must be numbers.", file=sys.stderr)
+            sys.exit(1)
 
-# Print prediction class and confidence to stdout in Prediction,Confidence format
-pred_val, pred_conf = prediction[0]
-print(f"{pred_val},{pred_conf:.2f}")
+        if len(values) % 6 != 0:
+            print("Error: Feature arguments must be groups of 6.", file=sys.stderr)
+            sys.exit(1)
+
+        return [values[index : index + 6] for index in range(0, len(values), 6)]
+
+    raw = sys.stdin.read().strip()
+    if raw:
+        try:
+            rows = json.loads(raw)
+        except json.JSONDecodeError:
+            print("Error: stdin must be a JSON array of feature rows.", file=sys.stderr)
+            sys.exit(1)
+
+        if not isinstance(rows, list) or not rows:
+            print("Error: expected a non-empty JSON array of feature rows.", file=sys.stderr)
+            sys.exit(1)
+
+        return rows
+
+    return [[85, 3.5, 80, 90, 88, 90]]
+
+
+rows = parse_rows()
+predictions = model.predict(np.array(rows, dtype=float))
+payload = [
+    [str(label), round(float(confidence), 4)] for label, confidence in predictions
+]
+print(json.dumps(payload))

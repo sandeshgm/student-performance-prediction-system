@@ -2,10 +2,7 @@ import jwt from "jsonwebtoken";
 import Admin from "../models/Admin.js";
 
 export const protect = async (req, res, next) => {
-  console.log("===== PROTECT =====");
-  console.log(req.headers.authorization);
   try {
-    //console.log("Received Authorization Header:", req.headers.authorization);
     const authHeader = req.headers.authorization || "";
 
     if (!authHeader.startsWith("Bearer ")) {
@@ -26,12 +23,11 @@ export const protect = async (req, res, next) => {
 
     if (!jwtSecret) {
       return res.status(500).json({
-        message: "Server configuration error: JWT_SECRET is not set",
+        message: "Server configuration error",
       });
     }
 
     const decoded = jwt.verify(token, jwtSecret);
-
     const admin = await Admin.findById(decoded.id).select("_id email");
 
     if (!admin) {

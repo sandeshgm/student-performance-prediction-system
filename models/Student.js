@@ -5,7 +5,7 @@ import BehaviourSchema from "./Behaviour.js";
 import PreviousSemesterSchema from "./PreviousSemester.js";
 
 import { applyStudentCalculations } from "../utils/studentHelpers.js";
-import { predictSubjectPerformance, predictOverallPerformance, printPerformanceReport } from "../utils/mlPredictor.js";
+import { predictStudentPerformance } from "../utils/mlPredictor.js";
 
 const StudentSchema = new mongoose.Schema(
   {
@@ -113,35 +113,15 @@ const StudentSchema = new mongoose.Schema(
 StudentSchema.pre("save", async function () {
   applyStudentCalculations(this);
 
+  if (this.$locals?.skipMl) {
+    return;
+  }
+
   try {
-    // 1. Predict performance for each subject in currentSubjects
-    if (this.currentSubjects && this.currentSubjects.length > 0) {
-      for (let subject of this.currentSubjects) {
-        subject.predictedPerformance = await predictSubjectPerformance(this, subject);
-      }
-    }
-
-    // 2. Predict overall student performance
-    const { prediction, confidence } = await predictOverallPerformance(this);
-    this.predictedPerformance = prediction;
-    this.confidence = confidence;
-
-    // 3. Automatically adjust risk level based on overall prediction
-    if (prediction === "Poor") {
-      this.riskLevel = "High";
-    } else if (prediction === "Average") {
-      this.riskLevel = "Medium";
-    } else {
-      this.riskLevel = "Low";
-    }
+    await predictStudentPerformance(this);
   } catch (err) {
     console.error("Machine Learning Prediction Error:", err.message);
   }
-});
-
-// Post-save hook to print the student performance report to console
-StudentSchema.post("save", function (doc) {
-  printPerformanceReport(doc);
 });
 
 export default mongoose.model("Student", StudentSchema);
