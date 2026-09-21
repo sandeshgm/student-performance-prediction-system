@@ -1,91 +1,113 @@
-import pandas as pd
-import numpy as np
-import os
 import json
+import os
 
-# Set random seed for reproducibility
+import numpy as np
+import pandas as pd
+
 np.random.seed(42)
 
-# Resolve importance.json path
 script_dir = os.path.dirname(os.path.abspath(__file__))
+root_dir = os.path.dirname(script_dir)
 importance_path = os.path.join(script_dir, "importance.json")
+dataset_path = os.path.join(root_dir, "dataset.csv")
 
-# Load weights from importance.json if available
 weights = {}
 if os.path.exists(importance_path):
     try:
-        with open(importance_path, "r") as f:
-            weights = json.load(f)
+        with open(importance_path, "r") as file:
+            weights = json.load(file)
         print(f"Loaded custom weights from importance.json: {weights}")
-    except Exception as e:
-        print(f"Error loading importance.json: {e}. Using defaults.")
+    except Exception as error:
+        print(f"Error loading importance.json: {error}. Using defaults.")
 
-# Extract weights with default fallbacks
-w_attendance = weights.get("attendance", 14)
-w_gpa = weights.get("gpa", 26)
-w_internal = weights.get("internal", 19)
-w_assignment = weights.get("assignment", 29)
-w_terminal = weights.get("terminal", 2)
-w_behaviour = weights.get("behaviour", 11)
+LABELS = ["Excellent", "Good", "Average", "Poor"]
+SAMPLES_PER_CLASS = 750
 
-total_weight = w_attendance + w_gpa + w_internal + w_assignment + w_terminal + w_behaviour
-if total_weight == 0:
-    total_weight = 100
-    w_attendance = 14
-    w_gpa = 26
-    w_internal = 19
-    w_assignment = 29
-    w_terminal = 2
-    w_behaviour = 11
+# Feature ranges per class so labels are learnable but still realistic.
+CLASS_PROFILES = {
+    "Excellent": {
+        "attendance": (88, 100),
+        "gpa": (3.2, 4.0),
+        "internal": (78, 100),
+        "assignment": (80, 100),
+        "terminal": (75, 100),
+        "behaviour": (82, 100),
+    },
+    "Good": {
+        "attendance": (75, 95),
+        "gpa": (2.8, 3.8),
+        "internal": (65, 88),
+        "assignment": (68, 90),
+        "terminal": (60, 85),
+        "behaviour": (70, 92),
+    },
+    "Average": {
+        "attendance": (60, 82),
+        "gpa": (2.0, 3.2),
+        "internal": (45, 72),
+        "assignment": (48, 75),
+        "terminal": (40, 70),
+        "behaviour": (50, 78),
+    },
+    "Poor": {
+        "attendance": (20, 65),
+        "gpa": (0.0, 2.4),
+        "internal": (10, 55),
+        "assignment": (10, 50),
+        "terminal": (10, 45),
+        "behaviour": (20, 55),
+    },
+}
 
-# Generate 1000 synthetic student records
-n_samples = 1000
 
-attendance = np.random.randint(20, 100, n_samples)
-gpa = np.round(np.random.uniform(0.0, 4.0, n_samples), 2)
-internal = np.random.randint(10, 100, n_samples)
-assignment = np.random.randint(10, 100, n_samples)
-terminal = np.random.randint(10, 100, n_samples)
-behaviour = np.random.randint(20, 100, n_samples)
+def random_in_range(low, high, as_int=True):
+    value = np.random.uniform(low, high)
+    return int(round(value)) if as_int else round(float(value), 2)
 
-# Logic to determine target performance class based on custom weights
-performance = []
-for i in range(n_samples):
-    # Calculate a composite score out of 100
-    score = (
-        attendance[i] * w_attendance +
-        (gpa[i] / 4.0 * 100) * w_gpa +
-        internal[i] * w_internal +
-        assignment[i] * w_assignment +
-        terminal[i] * w_terminal +
-        behaviour[i] * w_behaviour
-    ) / total_weight
 
-    # Add minor noise
-    score += np.random.normal(0, 3)
-    
-    if score >= 85:
-        performance.append("Excellent")
-    elif score >= 70:
-        performance.append("Good")
-    elif score >= 50:
-        performance.append("Average")
-    else:
-        performance.append("Poor")
+records = []
 
-df = pd.DataFrame({
-    'attendance': attendance,
-    'gpa': gpa,
-    'internal': internal,
-    'assignment': assignment,
-    'terminal': terminal,
-    'behaviour': behaviour,
-    'performance': performance
-})
+for label in LABELS:
+    profile = CLASS_PROFILES[label]
 
-# Save to dataset.csv in root folder
-root_dir = os.path.dirname(script_dir)
-dataset_path = os.path.join(root_dir, "dataset.csv")
+    for _ in range(SAMPLES_PER_CLASS):
+        attendance = int(
+            np.clip(random_in_range(*profile["attendance"]) + np.random.normal(0, 4), 0, 100)
+        )
+        gpa = round(
+            float(np.clip(random_in_range(*profile["gpa"], as_int=False) + np.random.normal(0, 0.15), 0, 4)),
+            2,
+        )
+        internal = int(
+            np.clip(random_in_range(*profile["internal"]) + np.random.normal(0, 4), 0, 100)
+        )
+        assignment = int(
+            np.clip(random_in_range(*profile["assignment"]) + np.random.normal(0, 4), 0, 100)
+        )
+        terminal = int(
+            np.clip(random_in_range(*profile["terminal"]) + np.random.normal(0, 4), 0, 100)
+        )
+        behaviour = int(
+            np.clip(random_in_range(*profile["behaviour"]) + np.random.normal(0, 4), 0, 100)
+        )
+
+        records.append(
+            {
+                "attendance": attendance,
+                "gpa": gpa,
+                "internal": internal,
+                "assignment": assignment,
+                "terminal": terminal,
+                "behaviour": behaviour,
+                "performance": label,
+            }
+        )
+
+df = pd.DataFrame(records)
+df = df.sample(frac=1, random_state=42).reset_index(drop=True)
 df.to_csv(dataset_path, index=False)
-print(f"Synthetic dataset generated and saved to {dataset_path}")
 
+print(f"Synthetic dataset generated and saved to {dataset_path}")
+print(f"Total rows: {len(df)}")
+print("Class distribution:")
+print(df["performance"].value_counts().to_string())

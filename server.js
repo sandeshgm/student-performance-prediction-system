@@ -7,6 +7,8 @@ import { fileURLToPath } from "url";
 import connectDB from "./config/db.js";
 import adminRoutes from "./routes/adminRoutes.js";
 import studentRoutes from "./routes/studentRoutes.js";
+import { getModelAccuracy } from "./controllers/studentControllers.js";
+import { protect } from "./middleware/authMiddleware.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -38,6 +40,9 @@ app.use(express.json());
 
 // Routes
 app.use("/api/admin", adminRoutes);
+
+// Register before /api/students router so ":id" never catches "model-accuracy"
+app.get("/api/students/model-accuracy", protect, getModelAccuracy);
 app.use("/api/students", studentRoutes);
 
 // Start server

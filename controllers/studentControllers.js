@@ -437,3 +437,49 @@ export const updateFeatureImportance = async (req, res) => {
   }
 };
 
+/*
+GET MODEL ACCURACY REPORT
+GET /api/students/model-accuracy
+*/
+export const getModelAccuracy = async (req, res) => {
+  try {
+    const filePath = path.join(__dirname, "../ml/accuracy_report.json");
+    const data = await fs.readFile(filePath, "utf-8");
+    const report = JSON.parse(data);
+
+    const accuracyPercent = Number(report.test_accuracy_percent);
+
+    res.status(200).json({
+      success: true,
+      message: `Model accuracy is ${accuracyPercent}%`,
+      data: {
+        modelAccuracyPercent: accuracyPercent,
+        modelAccuracy: `${accuracyPercent}%`,
+        algorithm: report.algorithm,
+        maxDepth: report.max_depth,
+        totalSamples: report.total_samples,
+        trainSamples: report.train_samples,
+        testSamples: report.test_samples,
+        correctPredictions: report.correct_predictions,
+        labels: report.labels,
+       confusionMatrix: report.confusion_matrix,
+      },
+    });
+  } catch (error) {
+    if (error.code === "ENOENT") {
+      return res.status(404).json({
+        success: false,
+        message:
+          "Model accuracy report not found. Run 'python ml/train.py' first to generate it.",
+      });
+    }
+
+    console.error("Model Accuracy Error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to read model accuracy report.",
+      error: error.message,
+    });
+  }
+};
+
