@@ -345,6 +345,32 @@ button {
   color: var(--muted);
 }
 
+.password-field {
+  position: relative;
+}
+
+.password-field input {
+  width: 100%;
+  padding-right: 42px;
+}
+
+.password-toggle {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  padding: 4px;
+  display: grid;
+  place-items: center;
+}
+
+.password-toggle:hover {
+  color: var(--ink);
+}
+
 input,
 select,
 textarea {

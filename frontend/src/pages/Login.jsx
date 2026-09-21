@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Navigate, useLocation, useNavigate } from "react-router-dom";
 
 import { useAuth } from "../auth";
+import { Icon } from "../components/Icons";
 import { Banner } from "../components/Status";
 
 export default function Login() {
@@ -10,6 +11,7 @@ export default function Login() {
   const location = useLocation();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [pending, setPending] = useState(false);
 
@@ -35,19 +37,19 @@ export default function Login() {
     <div className="login-shell">
       <section className="login-brand">
         <div>
-          <div className="eyebrow">Faculty console</div>
+          <div className="eyebrow">Faculty portal</div>
           <h1>Student performance prediction</h1>
           <p>
-            Enter marks, attendance, and behaviour. The model returns a risk
-            level and a subject-level report for the next exam.
+            Record attendance, marks, and classroom behaviour. Get a clear
+            picture of who may need extra support before exams.
           </p>
         </div>
-        <p>Admin access only. Students do not log in here.</p>
+        <p>For teachers and coordinators only. Students cannot sign in here.</p>
       </section>
       <section className="login-panel">
         <form className="login-card" onSubmit={onSubmit}>
           <h2>Sign in</h2>
-          <p className="muted">Use the admin account from your server .env</p>
+          <p className="muted">Enter your email and password to continue.</p>
           <Banner>{error}</Banner>
           <div className="field">
             <label htmlFor="email">Email</label>
@@ -62,14 +64,24 @@ export default function Login() {
           </div>
           <div className="field">
             <label htmlFor="password">Password</label>
-            <input
-              id="password"
-              type="password"
-              autoComplete="current-password"
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-              required
-            />
+            <div className="password-field">
+              <input
+                id="password"
+                type={showPassword ? "text" : "password"}
+                autoComplete="current-password"
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+                required
+              />
+              <button
+                type="button"
+                className="password-toggle"
+                aria-label={showPassword ? "Hide password" : "Show password"}
+                onClick={() => setShowPassword((current) => !current)}
+              >
+                <Icon name={showPassword ? "eyeOff" : "eye"} size={18} />
+              </button>
+            </div>
           </div>
           <button className="btn" type="submit" disabled={pending}>
             {pending ? "Signing in…" : "Sign in"}
