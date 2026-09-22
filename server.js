@@ -74,7 +74,7 @@ app.get("/health", (_req, res) => {
 app.use("/api/admin", adminRoutes);
 app.use("/api/students", studentRoutes);
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5001;
 
 const startServer = async () => {
   try {
