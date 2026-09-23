@@ -45,12 +45,12 @@ SAMPLES_PER_CLASS = 750
 # admin-configured weights instead of treating every column equally.
 CLASS_CENTERS = {
     "Excellent": {
-        "attendance": 86,
-        "gpa": 3.45,
-        "internal": 82,
-        "assignment": 84,
-        "terminal": 80,
-        "behaviour": 84,
+        "attendance": 88,
+        "gpa": 3.52,
+        "internal": 85,
+        "assignment": 86,
+        "terminal": 83,
+        "behaviour": 86,
     },
     "Good": {
         "attendance": 74,
@@ -61,30 +61,30 @@ CLASS_CENTERS = {
         "behaviour": 72,
     },
     "Average": {
-        "attendance": 62,
-        "gpa": 2.35,
-        "internal": 56,
-        "assignment": 58,
-        "terminal": 54,
-        "behaviour": 60,
+        "attendance": 60,
+        "gpa": 2.28,
+        "internal": 54,
+        "assignment": 56,
+        "terminal": 52,
+        "behaviour": 58,
     },
     "Poor": {
-        "attendance": 48,
-        "gpa": 1.7,
-        "internal": 40,
-        "assignment": 42,
-        "terminal": 40,
-        "behaviour": 46,
+        "attendance": 44,
+        "gpa": 1.58,
+        "internal": 36,
+        "assignment": 38,
+        "terminal": 36,
+        "behaviour": 42,
     },
 }
 
 FEATURE_SCALE = {
-    "attendance": (8.0, 24.0, 0, 100, True),
-    "gpa": (0.28, 0.95, 0, 4, False),
-    "internal": (8.0, 24.0, 0, 100, True),
-    "assignment": (8.0, 24.0, 0, 100, True),
-    "terminal": (8.0, 24.0, 0, 100, True),
-    "behaviour": (8.0, 22.0, 0, 100, True),
+    "attendance": (6.0, 16.0, 0, 100, True),
+    "gpa": (0.20, 0.58, 0, 4, False),
+    "internal": (6.0, 16.0, 0, 100, True),
+    "assignment": (6.0, 16.0, 0, 100, True),
+    "terminal": (6.0, 16.0, 0, 100, True),
+    "behaviour": (6.0, 15.0, 0, 100, True),
 }
 
 
@@ -129,7 +129,7 @@ adjacent = {
 }
 
 for index in df.index:
-    if np.random.random() < 0.12:
+    if np.random.random() < 0.07:
         df.at[index, "performance"] = np.random.choice(adjacent[df.at[index, "performance"]])
 
 df = df.sample(frac=1, random_state=42).reset_index(drop=True)

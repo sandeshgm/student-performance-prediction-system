@@ -2,40 +2,40 @@
     "algorithm": "Decision Tree (from scratch)",
     "dataset_type": "synthetic",
     "labeling": "class_conditional_with_weight_controlled_overlap",
-    "max_depth": 10,
+    "max_depth": 6,
     "dataset_path": "dataset.csv",
     "total_samples": 3000,
     "train_samples": 1918,
     "validation_samples": 481,
     "test_samples": 601,
-    "validation_accuracy_percent": 70.89,
-    "test_accuracy": 0.6922,
-    "test_accuracy_percent": 69.22,
-    "correct_predictions": 416,
+    "validation_accuracy_percent": 87.73,
+    "test_accuracy": 0.9018,
+    "test_accuracy_percent": 90.18,
+    "correct_predictions": 542,
     "confusion_matrix": [
         [
-            113,
-            28,
-            1,
+            137,
+            11,
+            0,
             0
         ],
         [
-            47,
-            94,
             14,
-            5
-        ],
-        [
-            2,
-            25,
-            97,
-            34
+            134,
+            5,
+            0
         ],
         [
             0,
-            6,
-            23,
-            112
+            4,
+            138,
+            14
+        ],
+        [
+            0,
+            2,
+            9,
+            133
         ]
     ],
     "labels": [
