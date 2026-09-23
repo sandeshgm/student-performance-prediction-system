@@ -75,7 +75,8 @@ export default function CsvUpload() {
   }
 
   return (
-    <section className="card csv-card">
+    <>
+    {/* <section className="card csv-card">
       <div className="card-title">
         <h2>Import CSV</h2>
         <a className="chip-btn" href="/student-template.csv" download>
@@ -147,6 +148,7 @@ export default function CsvUpload() {
           </div>
         </>
       ) : null}
-    </section>
+    </section> */}
+    </>
   );
 }

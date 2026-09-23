@@ -1,7 +1,9 @@
 import { Link, useParams } from "react-router-dom";
 
-import { Icon, shortLabel, subjectIcon } from "./Icons";
+import { shortLabel } from "./Icons";
 import { Pill } from "./Status";
+import { FaEdit } from "react-icons/fa";
+import { FaUsers } from "react-icons/fa";
 
 const GAUGE = {
   Excellent: 0.12,
@@ -53,8 +55,8 @@ export function DecisionGauge({ label }) {
 }
 
 export function MarksChart({ subjects }) {
-  const width = 420;
-  const height = 220;
+  const width = 350;
+  const height = 200;
   const pad = { l: 32, r: 12, t: 24, b: 36 };
   const innerW = width - pad.l - pad.r;
   const innerH = height - pad.t - pad.b;
@@ -75,7 +77,7 @@ export function MarksChart({ subjects }) {
               y2={y}
               stroke="#edf2f8"
             />
-            <text x={pad.l - 6} y={y + 4} textAnchor="end" className="chart-tick">
+            <text x={pad.l - 4} y={y + 4} textAnchor="end" className="text-sm">
               {tick}
             </text>
           </g>
@@ -93,8 +95,8 @@ export function MarksChart({ subjects }) {
               stroke="#94a3b8"
               strokeDasharray="4 4"
             />
-            <text x={width - pad.r} y={y - 6} textAnchor="end" className="chart-note">
-              Passing (50)
+            <text x={width - pad.r} y={y - 6} textAnchor="end" className="text-sm">
+              Passing mark(50)
             </text>
           </>
         );
@@ -115,7 +117,7 @@ export function MarksChart({ subjects }) {
               x={x + barW / 2}
               y={height - 10}
               textAnchor="middle"
-              className="chart-label"
+              className="text-sm"
             >
               {shortLabel(subject.subjectName)}
             </text>
@@ -126,22 +128,14 @@ export function MarksChart({ subjects }) {
   );
 }
 
-export function SubjectGlyph({ name }) {
-  return (
-    <span className={`subject-glyph tone-${subjectIcon(name)}`}>
-      <Icon name={subjectIcon(name)} size={16} />
-    </span>
-  );
-}
-
 export function ReportNav({ id }) {
   return (
-    <div className="rp-actions">
-      <Link className="chip-btn" to={`/students/${id}/edit`}>
-        <Icon name="edit" size={15} /> Edit
+    <div className="flex flex-col gap-3">
+      <Link className="flex items-center gap-2" to={`/students/${id}/edit`}>
+        <FaEdit name="edit" size={20} /> Edit student
       </Link>
-      <Link className="chip-btn" to="/students">
-        <Icon name="students" size={15} /> All students
+      <Link className="flex items-center gap-2" to="/students">
+        <FaUsers size={20} /> All students
       </Link>
     </div>
   );

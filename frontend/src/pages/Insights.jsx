@@ -28,11 +28,13 @@ export default function Insights() {
 
   async function load() {
     setError("");
+
     const [topResult, accuracyResult, importance] = await Promise.all([
       getTopPerformers(8),
       getModelAccuracy(),
       getFeatureImportance(),
     ]);
+
     setTop(topResult.students || []);
     setAccuracy(accuracyResult.data);
     setWeights(importance.data || {});
@@ -49,12 +51,15 @@ export default function Insights() {
     setRetraining(true);
     setError("");
     setNotice("");
+
     try {
       const numeric = Object.fromEntries(
         WEIGHT_KEYS.map(([key]) => [key, Number(weights[key] || 0)]),
       );
+
       await updateFeatureImportance(numeric);
       await load();
+
       setNotice("Model retrained and student predictions recalculated.");
     } catch (err) {
       setError(err.message);
@@ -69,46 +74,82 @@ export default function Insights() {
 
   return (
     <div>
-      <div className="page-head">
+      <div className="mb-6 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-end">
         <div>
-          <div className="eyebrow">Model</div>
-          <h1>Insights</h1>
-          <p>
-            Top performers, held-out accuracy on synthetic data, and training
-            weights.
+          <h1 className="mb-2 tracking-[0.12em] text-lg font-bold text-[#125587]">
+            Insights
+          </h1>
+
+          <p className="mt-2 text-[#6b7a90]">
+            View the top performers and model accuracy, and adjust feature weights used to train the model.
           </p>
         </div>
       </div>
 
       <Banner>{error}</Banner>
-      {notice ? <p className="muted">{notice}</p> : null}
 
-      <section className="section">
-        <h2>Top performers</h2>
+      {notice ? (
+        <p className="mb-4 text-[#6b7a90]">
+          {notice}
+        </p>
+      ) : null}
+
+      <section className="mb-4">
+        <h2 className="mb-3 text-xl font-bold tracking-[-0.03em] text-[#12203a]">
+          Top performers
+        </h2>
+
         {top.length === 0 ? (
           <Empty>No students yet.</Empty>
         ) : (
-          <div className="table-wrap">
-            <table>
+          <div className="overflow-auto rounded border border-[#e4ebf4] bg-white shadow-[0_8px_28px_rgba(15,36,68,0.06)]">
+            <table className="w-full min-w-[650px] border-collapse">
               <thead>
                 <tr>
-                  <th>Rank</th>
-                  <th>Name</th>
-                  <th>Roll</th>
-                  <th>Predicted</th>
-                  <th>Average</th>
+                  <th className="border-b border-[#e4ebf4] px-2.5 py-3 text-left text-[0.75rem] font-semibold uppercase tracking-[0.06em] text-[#6b7a90]">
+                    Rank
+                  </th>
+
+                  <th className="border-b border-[#e4ebf4] px-2.5 py-3 text-left text-[0.75rem] font-semibold uppercase tracking-[0.06em] text-[#6b7a90]">
+                    Name
+                  </th>
+
+                  <th className="border-b border-[#e4ebf4] px-2.5 py-3 text-left text-[0.75rem] font-semibold uppercase tracking-[0.06em] text-[#6b7a90]">
+                    Roll
+                  </th>
+
+                  <th className="border-b border-[#e4ebf4] px-2.5 py-3 text-left text-[0.75rem] font-semibold uppercase tracking-[0.06em] text-[#6b7a90]">
+                    Predicted
+                  </th>
+
+                  <th className="border-b border-[#e4ebf4] px-2.5 py-3 text-left text-[0.75rem] font-semibold uppercase tracking-[0.06em] text-[#6b7a90]">
+                    Average
+                  </th>
                 </tr>
               </thead>
+
               <tbody>
                 {top.map((student) => (
                   <tr key={student._id}>
-                    <td>{student.rank}</td>
-                    <td>{student.name}</td>
-                    <td>{student.rollNo || student.studentId}</td>
-                    <td>
+                    <td className="border-b border-[#e4ebf4] px-2.5 py-3 text-[0.95rem] text-[#12203a]">
+                      {student.rank}
+                    </td>
+
+                    <td className="border-b border-[#e4ebf4] px-2.5 py-3 text-[0.95rem] text-[#12203a]">
+                      {student.name}
+                    </td>
+
+                    <td className="border-b border-[#e4ebf4] px-2.5 py-3 text-[0.95rem] text-[#12203a]">
+                      {student.rollNo || student.studentId}
+                    </td>
+
+                    <td className="border-b border-[#e4ebf4] px-2.5 py-3 text-[0.95rem] text-[#12203a]">
                       <Pill value={student.predictedPerformance} />
                     </td>
-                    <td>{Number(student.averageMarks || 0).toFixed(1)}</td>
+
+                    <td className="border-b border-[#e4ebf4] px-2.5 py-3 text-[0.95rem] text-[#12203a]">
+                      {Number(student.averageMarks || 0).toFixed(1)}
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -117,55 +158,98 @@ export default function Insights() {
         )}
       </section>
 
-      <div className="grid two-col section">
-        <div className="card">
-          <h2>Model accuracy</h2>
+      <div className="grid grid-cols-1 gap-4 min-[901px]:grid-cols-2">
+        <div className="rounded border border-[#e4ebf4] bg-white px-5 py-[18px] shadow-[0_8px_28px_rgba(15,36,68,0.06)]">
+          <h2 className="mb-3 text-xl font-bold tracking-[-0.03em] text-[#12203a]">
+            Model accuracy
+          </h2>
+
           {accuracy ? (
             <>
-              <div className="stat-value">{accuracy.modelAccuracy}</div>
-              <p className="muted">
+              <div className="text-[1.8rem] font-bold tracking-[-0.03em] text-[#12203a]">
+                {accuracy.modelAccuracy}
+              </div>
+
+              <p className="mt-1.5 text-[#6b7a90]">
                 Held-out test on a {accuracy.datasetType || "synthetic"} dataset
-                {accuracy.labeling ? ` (${accuracy.labeling.replaceAll("_", " ")})` : ""}
+                {accuracy.labeling
+                  ? ` (${accuracy.labeling.replaceAll("_", " ")})`
+                  : ""}
                 . Depth {accuracy.maxDepth}. {accuracy.correctPredictions}/
                 {accuracy.testSamples} correct.
               </p>
+
               {accuracy.confusionMatrix ? (
-                <table className="matrix">
-                  <thead>
-                    <tr>
-                      <th></th>
-                      {accuracy.labels.map((label) => (
-                        <th key={label}>{label}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {accuracy.confusionMatrix.map((row, index) => (
-                      <tr key={accuracy.labels[index]}>
-                        <th>{accuracy.labels[index]}</th>
-                        {row.map((cell, cellIndex) => (
-                          <td key={cellIndex}>{cell}</td>
+                <div className="mt-5 overflow-auto">
+                  <table className="w-full border-collapse">
+                    <thead>
+                      <tr>
+                        <th className="border-b border-[#e4ebf4] px-2.5 py-3 text-left text-[0.75rem] font-semibold uppercase tracking-[0.06em] text-[#6b7a90]"></th>
+
+                        {accuracy.labels.map((label) => (
+                          <th
+                            key={label}
+                            className="border-b border-[#e4ebf4] px-2.5 py-3 text-left text-[0.75rem] font-semibold uppercase tracking-[0.06em] text-[#6b7a90]"
+                          >
+                            {label}
+                          </th>
                         ))}
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+
+                    <tbody>
+                      {accuracy.confusionMatrix.map((row, index) => (
+                        <tr key={accuracy.labels[index]}>
+                          <th className="border-b border-[#e4ebf4] px-2.5 py-3 text-left text-[0.75rem] font-semibold uppercase tracking-[0.06em] text-[#6b7a90]">
+                            {accuracy.labels[index]}
+                          </th>
+
+                          {row.map((cell, cellIndex) => (
+                            <td
+                              key={cellIndex}
+                              className="border-b border-[#e4ebf4] px-2.5 py-3 text-[0.95rem] text-[#12203a]"
+                            >
+                              {cell}
+                            </td>
+                          ))}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               ) : null}
             </>
           ) : (
-            <Empty>Accuracy report not available. Train the model first.</Empty>
+            <Empty>
+              Accuracy report not available. Train the model first.
+            </Empty>
           )}
         </div>
 
-        <form className="card" onSubmit={onRetrain}>
-          <h2>Feature weights</h2>
-          <p className="muted">
-            Higher weight makes that feature more separable in the synthetic
-            training set. Retrain can take a minute.
+        <form
+          className="rounded border border-[#e4ebf4] bg-white px-5 py-[18px] shadow-[0_8px_28px_rgba(15,36,68,0.06)]"
+          onSubmit={onRetrain}
+        >
+          <h2 className="mb-3 text-xl font-bold tracking-[-0.03em] text-[#12203a]">
+            Feature weights
+          </h2>
+
+          <p className="mb-4 text-[#6b7a90]">
+            {/* Higher weight makes that feature more separable in the synthetic
+            training set.  */}
+            {/* Retrain can take a minute. */}
+            These are the features used to trrain the model
           </p>
+
           {WEIGHT_KEYS.map(([key, label]) => (
-            <div className="slider-row" key={key}>
-              <label>{label}</label>
+            <div
+              className="grid grid-cols-[120px_1fr_32px] items-center gap-3 border-b border-[#e4ebf4] py-3 last:border-b-0"
+              key={key}
+            >
+              <label className="text-[0.8rem] font-semibold text-[#6b7a90]">
+                {label}
+              </label>
+
               <input
                 type="range"
                 min="0"
@@ -177,13 +261,22 @@ export default function Insights() {
                     [key]: Number(event.target.value),
                   }))
                 }
+                className="w-full accent-[#2f6bff]"
               />
-              <strong>{weights[key] ?? 0}</strong>
+
+              <strong className="text-center text-[#12203a]">
+                {weights[key] ?? 0}
+              </strong>
             </div>
           ))}
-          <button className="btn" type="submit" disabled={retraining}>
+
+          {/* <button
+            className="mt-5 rounded-[12px] border-0 bg-[#2f6bff] px-4 py-2.5 font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60 hover:bg-[#2559d9]"
+            type="submit"
+            disabled={retraining}
+          >
             {retraining ? "Retraining…" : "Save weights and retrain"}
-          </button>
+          </button> */}
         </form>
       </div>
     </div>
