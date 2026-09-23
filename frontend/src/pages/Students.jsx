@@ -89,7 +89,7 @@ export default function Students() {
       </div>
 
       <div className="mb-4 flex flex-wrap items-end gap-2.5">
-        <label className="flex min-w-[160px] flex-col gap-1.5 text-[0.8rem] font-semibold text-[#6b7a90]">
+        <label className="flex min-w-40 flex-col gap-1.5 text-[0.8rem] font-semibold text-[#6b7a90]">
           Department
           <input
             value={filters.department}
@@ -101,11 +101,11 @@ export default function Students() {
               }))
             }
             placeholder="All"
-            className="w-full rounded-[10px] border border-[#e4ebf4] bg-white px-2.5 py-[9px] text-[0.95rem] font-normal text-[#12203a] outline-none focus:border-[#2f6bff] focus:ring-2 focus:ring-[#2f6bff]/10"
+            className="w-full rounded-[10px] border border-[#e4ebf4] bg-white px-2.5 py-2.25 text-[0.95rem] font-normal text-[#12203a] outline-none focus:border-[#2f6bff] focus:ring-2 focus:ring-[#2f6bff]/10"
           />
         </label>
 
-        <label className="flex min-w-[160px] flex-col gap-1.5 text-[0.8rem] font-semibold text-[#6b7a90]">
+        <label className="flex min-w-40 flex-col gap-1.5 text-[0.8rem] font-semibold text-[#6b7a90]">
           Semester
           <select
             value={filters.semester}
@@ -116,7 +116,7 @@ export default function Students() {
                 page: 1,
               }))
             }
-            className="w-full rounded-[10px] border border-[#e4ebf4] bg-white px-2.5 py-[9px] text-[0.95rem] font-normal text-[#12203a] outline-none focus:border-[#2f6bff] focus:ring-2 focus:ring-[#2f6bff]/10"
+            className="w-full rounded-[10px] border border-[#e4ebf4] bg-white px-2.5 py-2.25 text-[0.95rem] font-normal text-[#12203a] outline-none focus:border-[#2f6bff] focus:ring-2 focus:ring-[#2f6bff]/10"
           >
             <option value="">All</option>
 
@@ -136,7 +136,7 @@ export default function Students() {
       ) : payload.data?.length ? (
         <>
           <div className="overflow-auto rounded border border-[#e4ebf4] bg-white shadow-[0_8px_28px_rgba(15,36,68,0.06)]">
-            <table className="w-full min-w-[900px] border-collapse">
+            <table className="w-full min-w-225 border-collapse">
               <thead>
                 <tr>
                   <th className="border-b border-[#e4ebf4] px-2.5 py-3 text-left text-[0.75rem] font-semibold uppercase tracking-[0.06em] text-[#6b7a90]">
@@ -256,7 +256,7 @@ export default function Students() {
 
             <div className="flex items-center gap-2">
               <button
-                className="inline-flex items-center justify-center rounded-[12px] border border-[#e4ebf4] bg-white px-3 py-2 font-semibold text-[#12203a] disabled:cursor-not-allowed disabled:opacity-50 hover:bg-[#f7f9fc]"
+                className="inline-flex items-center justify-center rounded-xl border border-[#e4ebf4] bg-white px-3 py-2 font-semibold text-[#12203a] disabled:cursor-not-allowed disabled:opacity-50 hover:bg-[#f7f9fc]"
                 type="button"
                 disabled={filters.page <= 1}
                 onClick={() =>
@@ -270,7 +270,7 @@ export default function Students() {
               </button>
 
               <button
-                className="inline-flex items-center justify-center rounded-[12px] border border-[#e4ebf4] bg-white px-3 py-2 font-semibold text-[#12203a] disabled:cursor-not-allowed disabled:opacity-50 hover:bg-[#f7f9fc]"
+                className="inline-flex items-center justify-center rounded-xl border border-[#e4ebf4] bg-white px-3 py-2 font-semibold text-[#12203a] disabled:cursor-not-allowed disabled:opacity-50 hover:bg-[#f7f9fc]"
                 type="button"
                 disabled={filters.page >= pages}
                 onClick={() =>

@@ -234,7 +234,7 @@ export default function StudentForm() {
                 required
                 value={form.firstName}
                 onChange={(event) => patch("firstName", event.target.value)}
-                className="w-full rounded border border-slate-300 bg-white px-2.5 py-[9px] text-[#12203a] outline-none focus:border-[#2f6bff] focus:ring-2 focus:ring-[#2f6bff]/10"
+                className="w-full rounded border border-slate-300 bg-white px-2.5 py-2.25 text-[#12203a] outline-none focus:border-[#2f6bff] focus:ring-2 focus:ring-[#2f6bff]/10"
               />
             </div>
 
@@ -245,7 +245,7 @@ export default function StudentForm() {
               <input
                 value={form.lastName}
                 onChange={(event) => patch("lastName", event.target.value)}
-                className="w-full rounded border border-slate-300 bg-white px-2.5 py-[9px] text-[#12203a] outline-none focus:border-[#2f6bff] focus:ring-2 focus:ring-[#2f6bff]/10"
+                className="w-full rounded border border-slate-300 bg-white px-2.5 py-2.25 text-[#12203a] outline-none focus:border-[#2f6bff] focus:ring-2 focus:ring-[#2f6bff]/10"
               />
             </div>
           </div>
@@ -258,7 +258,7 @@ export default function StudentForm() {
               <select
                 value={form.gender}
                 onChange={(event) => patch("gender", event.target.value)}
-                className="w-full rounded border border-slate-300 bg-white px-2.5 py-[9px] text-[#12203a] outline-none focus:border-[#2f6bff] focus:ring-2 focus:ring-[#2f6bff]/10"
+                className="w-full rounded border border-slate-300 bg-white px-2.5 py-2.25 text-[#12203a] outline-none focus:border-[#2f6bff] focus:ring-2 focus:ring-[#2f6bff]/10"
               >
                 <option>Male</option>
                 <option>Female</option>
@@ -274,7 +274,7 @@ export default function StudentForm() {
                 required
                 value={form.department}
                 onChange={(event) => patch("department", event.target.value)}
-                className="w-full rounded border border-slate-300 bg-white px-2.5 py-[9px] text-[#12203a] outline-none focus:border-[#2f6bff] focus:ring-2 focus:ring-[#2f6bff]/10"
+                className="w-full rounded border border-slate-300 bg-white px-2.5 py-2.25 text-[#12203a] outline-none focus:border-[#2f6bff] focus:ring-2 focus:ring-[#2f6bff]/10"
               />
             </div>
 
@@ -285,7 +285,7 @@ export default function StudentForm() {
               <select
                 value={form.semester}
                 onChange={(event) => patch("semester", event.target.value)}
-                className="w-full rounded border border-slate-300 bg-white px-2.5 py-[9px] text-[#12203a] outline-none focus:border-[#2f6bff] focus:ring-2 focus:ring-[#2f6bff]/10"
+                className="w-full rounded border border-slate-300 bg-white px-2.5 py-2.25 text-[#12203a] outline-none focus:border-[#2f6bff] focus:ring-2 focus:ring-[#2f6bff]/10"
               >
                 {Array.from({ length: 8 }, (_, index) => (
                   <option key={index + 1} value={index + 1}>
@@ -302,7 +302,7 @@ export default function StudentForm() {
               <input
                 value={form.section}
                 onChange={(event) => patch("section", event.target.value)}
-                className="w-full rounded border border-slate-300 bg-white px-2.5 py-[9px] text-[#12203a] outline-none focus:border-[#2f6bff] focus:ring-2 focus:ring-[#2f6bff]/10"
+                className="w-full rounded border border-slate-300 bg-white px-2.5 py-2.25 text-[#12203a] outline-none focus:border-[#2f6bff] focus:ring-2 focus:ring-[#2f6bff]/10"
               />
             </div>
           </div>
@@ -316,7 +316,7 @@ export default function StudentForm() {
                 type="email"
                 value={form.email}
                 onChange={(event) => patch("email", event.target.value)}
-                className="w-full rounded border border-slate-300 bg-white px-2.5 py-[9px] text-[#12203a] outline-none focus:border-[#2f6bff] focus:ring-2 focus:ring-[#2f6bff]/10"
+                className="w-full rounded border border-slate-300 bg-white px-2.5 py-2.25 text-[#12203a] outline-none focus:border-[#2f6bff] focus:ring-2 focus:ring-[#2f6bff]/10"
               />
             </div>
 
@@ -330,14 +330,13 @@ export default function StudentForm() {
                 max="100"
                 value={form.attendance}
                 onChange={(event) => patch("attendance", event.target.value)}
-                className="w-full rounded border border-slate-300 bg-white px-2.5 py-[9px] text-[#12203a] outline-none focus:border-[#2f6bff] focus:ring-2 focus:ring-[#2f6bff]/10"
+                className="w-full rounded border border-slate-300 bg-white px-2.5 py-2.25 text-[#12203a] outline-none focus:border-[#2f6bff] focus:ring-2 focus:ring-[#2f6bff]/10"
               />
             </div>
           </div>
         </section>
 
-        {/* Previous Semester */}
-        <section className="mb-4 rounded border border-slate-300 bg-white px-5 py-[18px] shadow-[0_8px_28px_rgba(15,36,68,0.06)]">
+        <section className="mb-4 rounded border border-slate-300 bg-white px-5 py-4.5 shadow-[0_8px_28px_rgba(15,36,68,0.06)]">
           <h2 className="mb-3 text-xl font-bold tracking-[-0.03em] text-[#12203a]">
             Previous semester
           </h2>
@@ -355,7 +354,7 @@ export default function StudentForm() {
                 onChange={(event) =>
                   patch("previousSemester.semester", event.target.value)
                 }
-                className="w-full rounded border border-slate-300 bg-white px-2.5 py-[9px] text-[#12203a] outline-none focus:border-[#2f6bff] focus:ring-2 focus:ring-[#2f6bff]/10"
+                className="w-full rounded border border-slate-300 bg-white px-2.5 py-2.25 text-[#12203a] outline-none focus:border-[#2f6bff] focus:ring-2 focus:ring-[#2f6bff]/10"
               />
             </div>
 
@@ -372,7 +371,7 @@ export default function StudentForm() {
                 onChange={(event) =>
                   patch("previousSemester.gpa", event.target.value)
                 }
-                className="w-full rounded border border-slate-300 bg-white px-2.5 py-[9px] text-[#12203a] outline-none focus:border-[#2f6bff] focus:ring-2 focus:ring-[#2f6bff]/10"
+                className="w-full rounded border border-slate-300 bg-white px-2.5 py-2.25 text-[#12203a] outline-none focus:border-[#2f6bff] focus:ring-2 focus:ring-[#2f6bff]/10"
               />
             </div>
 
@@ -388,7 +387,7 @@ export default function StudentForm() {
                 onChange={(event) =>
                   patch("previousSemester.percentage", event.target.value)
                 }
-                className="w-full rounded border border-slate-300 bg-white px-2.5 py-[9px] text-[#12203a] outline-none focus:border-[#2f6bff] focus:ring-2 focus:ring-[#2f6bff]/10"
+                className="w-full rounded border border-slate-300 bg-white px-2.5 py-2.25 text-[#12203a] outline-none focus:border-[#2f6bff] focus:ring-2 focus:ring-[#2f6bff]/10"
               />
             </div>
           </div>
@@ -403,7 +402,7 @@ export default function StudentForm() {
 
             <button
               type="button"
-              className="inline-flex items-center justify-center rounded-[12px] border border-slate-300 bg-white px-4 py-2.5 font-normal text-lg text-[#12203a] hover:bg-[#f7f9fc]"
+              className="inline-flex items-center justify-center rounded border border-slate-300 bg-white px-4 py-2.5 font-normal text-lg text-[#12203a] hover:bg-[#f7f9fc]"
               onClick={() =>
                 setForm((current) => ({
                   ...current,
@@ -420,7 +419,7 @@ export default function StudentForm() {
 
           {form.currentSubjects.map((subject, index) => (
             <div
-              className="mb-4 rounded border border-slate-300 bg-white px-5 py-[18px] shadow-[0_8px_28px_rgba(15,36,68,0.06)]"
+              className="mb-4 rounded border border-slate-300 bg-white px-5 py-4.5 shadow-[0_8px_28px_rgba(15,36,68,0.06)]"
               key={index}
             >
               <div className="mb-4 grid grid-cols-1 gap-4 min-[901px]:grid-cols-2">
@@ -437,7 +436,7 @@ export default function StudentForm() {
                         event.target.value,
                       )
                     }
-                    className="w-full rounded border border-slate-300 bg-white px-2.5 py-[9px] text-[#12203a] outline-none focus:border-[#2f6bff] focus:ring-2 focus:ring-[#2f6bff]/10"
+                    className="w-full rounded border border-slate-300 bg-white px-2.5 py-2.25 text-[#12203a] outline-none focus:border-[#2f6bff] focus:ring-2 focus:ring-[#2f6bff]/10"
                   />
                 </div>
 
@@ -454,7 +453,7 @@ export default function StudentForm() {
                         event.target.value,
                       )
                     }
-                    className="w-full rounded border border-slate-300 bg-white px-2.5 py-[9px] text-[#12203a] outline-none focus:border-[#2f6bff] focus:ring-2 focus:ring-[#2f6bff]/10"
+                    className="w-full rounded border border-slate-300 bg-white px-2.5 py-2.25 text-[#12203a] outline-none focus:border-[#2f6bff] focus:ring-2 focus:ring-[#2f6bff]/10"
                   />
                 </div>
               </div>
@@ -475,7 +474,7 @@ export default function StudentForm() {
                         event.target.value,
                       )
                     }
-                    className="w-full rounded border border-slate-300 bg-white px-2.5 py-[9px] text-[#12203a] outline-none focus:border-[#2f6bff] focus:ring-2 focus:ring-[#2f6bff]/10"
+                    className="w-full rounded border border-slate-300 bg-white px-2.5 py-2.25 text-[#12203a] outline-none focus:border-[#2f6bff] focus:ring-2 focus:ring-[#2f6bff]/10"
                   />
                 </div>
 
@@ -494,7 +493,7 @@ export default function StudentForm() {
                         event.target.value,
                       )
                     }
-                    className="w-full rounded border border-slate-300 bg-white px-2.5 py-[9px] text-[#12203a] outline-none focus:border-[#2f6bff] focus:ring-2 focus:ring-[#2f6bff]/10"
+                    className="w-full rounded border border-slate-300 bg-white px-2.5 py-2.25 text-[#12203a] outline-none focus:border-[#2f6bff] focus:ring-2 focus:ring-[#2f6bff]/10"
                   />
                 </div>
 
@@ -513,7 +512,7 @@ export default function StudentForm() {
                         event.target.value,
                       )
                     }
-                    className="w-full rounded border border-slate-300 bg-white px-2.5 py-[9px] text-[#12203a] outline-none focus:border-[#2f6bff] focus:ring-2 focus:ring-[#2f6bff]/10"
+                    className="w-full rounded border border-slate-300 bg-white px-2.5 py-2.25 text-[#12203a] outline-none focus:border-[#2f6bff] focus:ring-2 focus:ring-[#2f6bff]/10"
                   />
                 </div>
               </div>
@@ -521,7 +520,7 @@ export default function StudentForm() {
               {form.currentSubjects.length > 1 ? (
                 <button
                   type="button"
-                  className="inline-flex items-center justify-center rounded-[12px] border-0 bg-transparent px-0 py-2 font-normal text-lg text-[#f43f7c] hover:underline"
+                  className="inline-flex items-center justify-center rounded border-0 bg-transparent px-0 py-2 font-normal text-lg text-[#f43f7c] hover:underline"
                   onClick={() =>
                     setForm((current) => ({
                       ...current,

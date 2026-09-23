@@ -103,7 +103,7 @@ export default function Insights() {
           <Empty>No students yet.</Empty>
         ) : (
           <div className="overflow-auto rounded border border-[#e4ebf4] bg-white shadow-[0_8px_28px_rgba(15,36,68,0.06)]">
-            <table className="w-full min-w-[650px] border-collapse">
+            <table className="w-full min-w-162.5 border-collapse">
               <thead>
                 <tr>
                   <th className="border-b border-[#e4ebf4] px-2.5 py-3 text-left text-[0.75rem] font-semibold uppercase tracking-[0.06em] text-[#6b7a90]">
@@ -159,7 +159,7 @@ export default function Insights() {
       </section>
 
       <div className="grid grid-cols-1 gap-4 min-[901px]:grid-cols-2">
-        <div className="rounded border border-[#e4ebf4] bg-white px-5 py-[18px] shadow-[0_8px_28px_rgba(15,36,68,0.06)]">
+        <div className="rounded border border-[#e4ebf4] bg-white px-5 py-4.5 shadow-[0_8px_28px_rgba(15,36,68,0.06)]">
           <h2 className="mb-3 text-xl font-bold tracking-[-0.03em] text-[#12203a]">
             Model accuracy
           </h2>
@@ -227,7 +227,7 @@ export default function Insights() {
         </div>
 
         <form
-          className="rounded border border-[#e4ebf4] bg-white px-5 py-[18px] shadow-[0_8px_28px_rgba(15,36,68,0.06)]"
+          className="rounded border border-[#e4ebf4] bg-white px-5 py-4.5 shadow-[0_8px_28px_rgba(15,36,68,0.06)]"
           onSubmit={onRetrain}
         >
           <h2 className="mb-3 text-xl font-bold tracking-[-0.03em] text-[#12203a]">

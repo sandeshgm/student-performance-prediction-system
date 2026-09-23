@@ -234,10 +234,8 @@ export default function Report() {
         </section>
       </div>
 
-      {/* Bottom Grid */}
       <div className="mb-4 grid gap-4 min-[901px]:grid-cols-[1.15fr_1fr]">
-        {/* Strengths */}
-        <section className="rounded border border-[#e4ebf4] bg-white px-5 py-[18px] shadow-[0_8px_28px_rgba(15,36,68,0.06)]">
+        <section className="rounded border border-[#e4ebf4] bg-white px-5 py-4.5 shadow-[0_8px_28px_rgba(15,36,68,0.06)]">
           <h3 className="mb-3.5 flex items-center gap-2 text-lg font-bold tracking-[-0.03em] text-[#059669]">
             Strengths
           </h3>
@@ -270,7 +268,7 @@ export default function Report() {
           </div>
         </section>
 
-        <section className="rounded border border-[#e4ebf4] bg-white px-5 py-[18px] shadow-[0_8px_28px_rgba(15,36,68,0.06)]">
+        <section className="rounded border border-[#e4ebf4] bg-white px-5 py-4.5 shadow-[0_8px_28px_rgba(15,36,68,0.06)]">
           <h3 className="mb-3.5 flex items-center gap-2 text-lg font-bold tracking-[-0.03em] text-[#f43f7c]">
             Areas to Improve
           </h3>
@@ -291,7 +289,7 @@ export default function Report() {
                   {item.suggestions.map((suggestion) => (
                     <li
                       key={suggestion}
-                      className="relative mb-1 pl-4 text-[0.9rem] text-[#6b7a90] before:absolute before:left-1 before:top-[0.55em] before:h-[5px] before:w-[5px] before:rounded-full before:bg-[#94a3b8] before:content-['']"
+                      className="relative mb-1 pl-4 text-[0.9rem] text-[#6b7a90] before:absolute before:left-1 before:top-[0.55em] before:h-1.25 before:w-1.25 before:rounded-full before:bg-[#94a3b8] before:content-['']"
                     >
                       {suggestion}
                     </li>

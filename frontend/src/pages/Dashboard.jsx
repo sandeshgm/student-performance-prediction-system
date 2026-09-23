@@ -101,7 +101,7 @@ export default function Dashboard() {
               }))
             }
             placeholder="All"
-            className="min-w-40 rounded-[10px] border border-[#e4ebf4] bg-white px-2.5 py-[9px] text-[#12203a] outline-none focus:border-[#2f6bff]"
+            className="min-w-40 rounded-[10px] border border-[#e4ebf4] bg-white px-2.5 py-2.25 text-[#12203a] outline-none focus:border-[#2f6bff]"
           />
         </label>
 
@@ -115,7 +115,7 @@ export default function Dashboard() {
                 semester: event.target.value,
               }))
             }
-            className="min-w-40 rounded-[10px] border border-[#e4ebf4] bg-white px-2.5 py-[9px] text-[#12203a] outline-none focus:border-[#2f6bff]"
+            className="min-w-40 rounded-[10px] border border-[#e4ebf4] bg-white px-2.5 py-2.25 text-[#12203a] outline-none focus:border-[#2f6bff]"
           >
             <option value="">All</option>
 
