@@ -46,7 +46,6 @@ export default function Students() {
 
   useEffect(() => {
     load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters.department, filters.semester, filters.page]);
 
   async function onDelete(id, name) {

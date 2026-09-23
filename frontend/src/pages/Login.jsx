@@ -5,6 +5,7 @@ import { useAuth } from "../auth";
 import { Icon } from "../components/Icons";
 import { Banner } from "../components/Status";
 import { MdAnalytics } from "react-icons/md";
+import { toast } from "react-toastify";
 
 export default function Login() {
   const { isAuthenticated, login } = useAuth();
@@ -28,9 +29,11 @@ export default function Login() {
 
     try {
       await login(email, password);
+      toast.success("Logged in successfully!");
       navigate(location.state?.from || "/", { replace: true });
     } catch (err) {
       setError(err.message);
+      toast.error(err.message);
     } finally {
       setPending(false);
     }
@@ -75,7 +78,7 @@ export default function Login() {
             Enter your email and password
           </p>
 
-          <div className="mt-5">
+          <div className="mt-5 text-red-500">
             <Banner>{error}</Banner>
           </div>
 

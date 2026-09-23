@@ -1,4 +1,6 @@
 import { Navigate, Route, Routes } from "react-router-dom";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 import { ProtectedRoute } from "./auth";
 import Layout from "./components/Layout";
@@ -11,23 +13,34 @@ import Students from "./pages/Students";
 
 export default function App() {
   return (
-    <Routes>
-      <Route path="/login" element={<Login />} />
-      <Route
-        element={
-          <ProtectedRoute>
-            <Layout />
-          </ProtectedRoute>
-        }
-      >
-        <Route path="/" element={<Dashboard />} />
-        <Route path="/students" element={<Students />} />
-        <Route path="/students/new" element={<StudentForm />} />
-        <Route path="/students/:id/edit" element={<StudentForm />} />
-        <Route path="/students/:id/report" element={<Report />} />
-        <Route path="/insights" element={<Insights />} />
-      </Route>
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
+    <>
+      <Routes>
+        <Route path="/login" element={<Login />} />
+        <Route
+          element={
+            <ProtectedRoute>
+              <Layout />
+            </ProtectedRoute>
+          }
+        >
+          <Route path="/" element={<Dashboard />} />
+          <Route path="/students" element={<Students />} />
+          <Route path="/students/new" element={<StudentForm />} />
+          <Route path="/students/:id/edit" element={<StudentForm />} />
+          <Route path="/students/:id/report" element={<Report />} />
+          <Route path="/insights" element={<Insights />} />
+        </Route>
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop
+        closeOnClick
+        pauseOnHover
+        theme="light"
+      />
+    </>
   );
 }
