@@ -6,6 +6,7 @@ import { Banner, Empty, Pill } from "../components/Status";
 import { HiDocumentReport } from "react-icons/hi";
 import { FaEdit } from "react-icons/fa";
 import { MdDelete } from "react-icons/md";
+import { toast } from "react-toastify";
 
 export default function Students() {
   const [filters, setFilters] = useState({

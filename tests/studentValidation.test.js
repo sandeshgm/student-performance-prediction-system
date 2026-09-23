@@ -8,6 +8,7 @@ const validBody = {
   firstName: "Ada",
   department: "CS",
   semester: 3,
+  previousSemester: { semester: 2, gpa: 3.1, percentage: 72 },
   currentSubjects: [{ subjectCode: "CS101", subjectName: "Programming" }],
 };
 
@@ -33,4 +34,18 @@ test("partial validation still rejects blank provided fields", () => {
 test("partial validation rejects an empty subject list when provided", () => {
   const errors = validateStudentInput({ currentSubjects: [] }, { partial: true });
   assert.ok(errors.some((error) => error.includes("subject")));
+});
+
+test("create validation requires previous semester GPA", () => {
+  const errors = validateStudentInput({ ...validBody, previousSemester: {} });
+  assert.ok(errors.some((error) => error.includes("Previous semester GPA")));
+});
+
+test("create validation requires previous semester even for semester 1", () => {
+  const errors = validateStudentInput({
+    ...validBody,
+    semester: 1,
+    previousSemester: undefined,
+  });
+  assert.ok(errors.some((error) => error.includes("Previous semester")));
 });

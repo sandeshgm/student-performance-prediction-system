@@ -5,6 +5,7 @@ import { createStudent, getStudent, updateStudent } from "../api";
 import CsvUpload from "../components/CsvUpload";
 import { Banner } from "../components/Status";
 import { PiLessThan } from "react-icons/pi";
+import {toast} from "react-toastify";
 
 const emptySubject = () => ({
   subjectCode: "",
@@ -25,9 +26,9 @@ const emptyForm = {
   email: "",
   attendance: 0,
   previousSemester: {
-    semester: 1,
-    gpa: 2.5,
-    percentage: 0,
+    semester: "",
+    gpa: "",
+    percentage: "",
   },
   currentSubjects: [emptySubject()],
   behaviour: {
@@ -48,6 +49,9 @@ const behaviourFields = [
   ["homeworkCompletion", "Homework"],
   ["punctuality", "Punctuality"],
 ];
+
+const isFilledNumber = (value) =>
+  value !== "" && value !== undefined && value !== null && !Number.isNaN(Number(value));
 
 export default function StudentForm() {
   const { id } = useParams();
@@ -77,7 +81,9 @@ export default function StudentForm() {
           ...student,
           previousSemester: {
             ...emptyForm.previousSemester,
-            ...(student.previousSemester || {}),
+            semester: student.previousSemester?.semester ?? "",
+            gpa: student.previousSemester?.gpa ?? "",
+            percentage: student.previousSemester?.percentage ?? "",
           },
           currentSubjects:
             student.currentSubjects?.length > 0
@@ -119,6 +125,16 @@ export default function StudentForm() {
 
       cursor[keys.at(-1)] = value;
 
+      if (path === "semester") {
+        const previous = Math.max(1, Number(value) - 1);
+        if (
+          next.previousSemester.semester === "" ||
+          Number(next.previousSemester.semester) >= Number(value)
+        ) {
+          next.previousSemester.semester = previous;
+        }
+      }
+
       return next;
     });
   }
@@ -126,6 +142,17 @@ export default function StudentForm() {
   async function onSubmit(event) {
     event.preventDefault();
     setError("");
+
+    const prev = form.previousSemester;
+    if (
+      !isFilledNumber(prev.semester) ||
+      !isFilledNumber(prev.gpa) ||
+      !isFilledNumber(prev.percentage)
+    ) {
+      setError("Previous semester, GPA, and percentage are required.");
+      return;
+    }
+
     setPending(true);
 
     const payload = {
@@ -161,9 +188,11 @@ export default function StudentForm() {
     try {
       if (id) {
         await updateStudent(id, payload);
+        toast.success("Student record updated successfully!");
         navigate(`/students/${id}/report`);
       } else {
         const created = await createStudent(payload);
+        toast.success("Student record created successfully!");
         navigate(`/students/${created.data.id}/report`);
       }
     } catch (err) {
@@ -203,7 +232,7 @@ export default function StudentForm() {
         </Link>
       </div>
 
-      <Banner>{error}</Banner>
+      <Banner className="text-red-500">{error}</Banner>
 
       {/* {!id ? <CsvUpload /> : null} */}
 
@@ -341,12 +370,17 @@ export default function StudentForm() {
             Previous semester
           </h2>
 
+          <p className="mb-3 text-[#6b7a90]">
+            Required. Previous GPA is used in the performance prediction.
+          </p>
+
           <div className="grid grid-cols-1 gap-4 min-[901px]:grid-cols-3">
             <div className="flex flex-col gap-1.5">
               <label className="text-[0.8rem] font-normal text-lg text-[#6b7a90]">
                 Semester
               </label>
               <input
+                required
                 type="number"
                 min="1"
                 max="8"
@@ -363,6 +397,7 @@ export default function StudentForm() {
                 GPA (0–4)
               </label>
               <input
+                required
                 type="number"
                 min="0"
                 max="4"
@@ -380,6 +415,7 @@ export default function StudentForm() {
                 Percentage
               </label>
               <input
+                required
                 type="number"
                 min="0"
                 max="100"
