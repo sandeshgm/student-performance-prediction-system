@@ -5,7 +5,7 @@ import { createStudent, getStudent, updateStudent } from "../api";
 import CsvUpload from "../components/CsvUpload";
 import { Banner } from "../components/Status";
 import { PiLessThan } from "react-icons/pi";
-import {toast} from "react-toastify";
+import { toast } from "react-toastify";
 
 const emptySubject = () => ({
   subjectCode: "",
@@ -51,7 +51,10 @@ const behaviourFields = [
 ];
 
 const isFilledNumber = (value) =>
-  value !== "" && value !== undefined && value !== null && !Number.isNaN(Number(value));
+  value !== "" &&
+  value !== undefined &&
+  value !== null &&
+  !Number.isNaN(Number(value));
 
 export default function StudentForm() {
   const { id } = useParams();
@@ -177,12 +180,14 @@ export default function StudentForm() {
         assignmentMarks: Number(subject.assignmentMarks),
         terminalExamMarks: Number(subject.terminalExamMarks),
       })),
-      behaviour: Object.fromEntries(
-        Object.entries(form.behaviour).map(([key, value]) => [
-          key,
-          Number(value),
-        ]),
-      ),
+      behaviour: {
+        discipline: Number(form.behaviour.discipline),
+        communication: Number(form.behaviour.communication),
+        teamwork: Number(form.behaviour.teamwork),
+        participation: Number(form.behaviour.participation),
+        homeworkCompletion: Number(form.behaviour.homeworkCompletion),
+        punctuality: Number(form.behaviour.punctuality),
+      },
     };
 
     try {
@@ -227,7 +232,7 @@ export default function StudentForm() {
           className="inline-flex items-center justify-center gap-2 px-4 py-2.5 font-normal  text-slate-600 no-underline hover:bg-[#f7f9fc]"
           to="/"
         >
-          <PiLessThan/>
+          <PiLessThan />
           Back
         </Link>
       </div>
@@ -392,7 +397,7 @@ export default function StudentForm() {
               />
             </div>
 
-            <div className="flex flex-col gap-1.5">
+            {/* <div className="flex flex-col gap-1.5">
               <label className="text-[0.8rem] font-normal text-lg text-[#6b7a90]">
                 GPA (0–4)
               </label>
@@ -425,6 +430,50 @@ export default function StudentForm() {
                 }
                 className="w-full rounded border border-slate-300 bg-white px-2.5 py-2.25 text-[#12203a] outline-none focus:border-[#2f6bff] focus:ring-2 focus:ring-[#2f6bff]/10"
               />
+            </div> */}
+
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[0.8rem] font-normal text-lg text-[#6b7a90]">
+                GPA (0–4)
+              </label>
+
+              <input
+                required
+                type="number"
+                min="0"
+                max="4"
+                step="0.01"
+                value={form.previousSemester.gpa}
+                onChange={(event) => {
+                  const gpa = event.target.value;
+
+                  patch("previousSemester.gpa", gpa);
+
+                  if (gpa !== "") {
+                    const percentage = (parseFloat(gpa) * 25).toFixed(2);
+                    patch("previousSemester.percentage", percentage);
+                  } else {
+                    patch("previousSemester.percentage", "");
+                  }
+                }}
+                className="w-full rounded border border-slate-300 bg-white px-2.5 py-2.25 text-[#12203a] outline-none focus:border-[#2f6bff] focus:ring-2 focus:ring-[#2f6bff]/10"
+              />
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[0.8rem] font-normal text-lg text-[#6b7a90]">
+                Percentage
+              </label>
+
+              <input
+                required
+                type="number"
+                min="0"
+                max="100"
+                value={form.previousSemester.percentage}
+                readOnly
+                className="w-full rounded border border-slate-300 bg-slate-100 px-2.5 py-2.25 text-[#12203a] outline-none"
+              />
             </div>
           </div>
         </section>
@@ -438,14 +487,11 @@ export default function StudentForm() {
 
             <button
               type="button"
-              className="inline-flex items-center justify-center rounded border border-slate-300 bg-white px-4 py-2.5 font-normal text-lg text-[#12203a] hover:bg-[#f7f9fc]"
+              className="inline-flex items-center justify-center rounded border border-slate-300 bg-[#125887] text-white px-4 py-2.5 font-normal text-lg hover:bg-[#0e476d]"
               onClick={() =>
                 setForm((current) => ({
                   ...current,
-                  currentSubjects: [
-                    ...current.currentSubjects,
-                    emptySubject(),
-                  ],
+                  currentSubjects: [...current.currentSubjects, emptySubject()],
                 }))
               }
             >
@@ -469,7 +515,7 @@ export default function StudentForm() {
                     onChange={(event) =>
                       patch(
                         `currentSubjects.${index}.subjectCode`,
-                        event.target.value,
+                        event.target.value
                       )
                     }
                     className="w-full rounded border border-slate-300 bg-white px-2.5 py-2.25 text-[#12203a] outline-none focus:border-[#2f6bff] focus:ring-2 focus:ring-[#2f6bff]/10"
@@ -486,7 +532,7 @@ export default function StudentForm() {
                     onChange={(event) =>
                       patch(
                         `currentSubjects.${index}.subjectName`,
-                        event.target.value,
+                        event.target.value
                       )
                     }
                     className="w-full rounded border border-slate-300 bg-white px-2.5 py-2.25 text-[#12203a] outline-none focus:border-[#2f6bff] focus:ring-2 focus:ring-[#2f6bff]/10"
@@ -507,7 +553,7 @@ export default function StudentForm() {
                     onChange={(event) =>
                       patch(
                         `currentSubjects.${index}.internalMarks`,
-                        event.target.value,
+                        event.target.value
                       )
                     }
                     className="w-full rounded border border-slate-300 bg-white px-2.5 py-2.25 text-[#12203a] outline-none focus:border-[#2f6bff] focus:ring-2 focus:ring-[#2f6bff]/10"
@@ -526,7 +572,7 @@ export default function StudentForm() {
                     onChange={(event) =>
                       patch(
                         `currentSubjects.${index}.assignmentMarks`,
-                        event.target.value,
+                        event.target.value
                       )
                     }
                     className="w-full rounded border border-slate-300 bg-white px-2.5 py-2.25 text-[#12203a] outline-none focus:border-[#2f6bff] focus:ring-2 focus:ring-[#2f6bff]/10"
@@ -545,7 +591,7 @@ export default function StudentForm() {
                     onChange={(event) =>
                       patch(
                         `currentSubjects.${index}.terminalExamMarks`,
-                        event.target.value,
+                        event.target.value
                       )
                     }
                     className="w-full rounded border border-slate-300 bg-white px-2.5 py-2.25 text-[#12203a] outline-none focus:border-[#2f6bff] focus:ring-2 focus:ring-[#2f6bff]/10"
@@ -561,7 +607,7 @@ export default function StudentForm() {
                     setForm((current) => ({
                       ...current,
                       currentSubjects: current.currentSubjects.filter(
-                        (_, subjectIndex) => subjectIndex !== index,
+                        (_, subjectIndex) => subjectIndex !== index
                       ),
                     }))
                   }
