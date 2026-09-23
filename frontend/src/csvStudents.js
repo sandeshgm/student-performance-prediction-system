@@ -175,8 +175,11 @@ export function csvToStudents(text) {
         attendance: clamp(toNumber(row.attendance, 0), 0, 100),
         previousSemester: {
           semester: clamp(toNumber(row.prevSemester, 1), 1, 8),
-          gpa: clamp(toNumber(row.gpa, 2.5), 0, 4),
-          percentage: clamp(toNumber(row.prevPercentage, 0), 0, 100),
+          gpa: row.gpa === undefined || row.gpa === "" ? "" : clamp(toNumber(row.gpa, NaN), 0, 4),
+          percentage:
+            row.prevPercentage === undefined || row.prevPercentage === ""
+              ? ""
+              : clamp(toNumber(row.prevPercentage, NaN), 0, 100),
         },
         behaviour: {
           discipline: clamp(toNumber(row.discipline, 3), 1, 5),
@@ -216,6 +219,23 @@ export function csvToStudents(text) {
     }
     if (!student.currentSubjects.length) {
       throw new Error(`Student ${student.rollNo} needs at least one subject.`);
+    }
+    const previous = student.previousSemester || {};
+    if (
+      previous.gpa === "" ||
+      previous.gpa === undefined ||
+      Number.isNaN(Number(previous.gpa))
+    ) {
+      throw new Error(`Student ${student.rollNo} needs previous semester GPA.`);
+    }
+    if (
+      previous.percentage === "" ||
+      previous.percentage === undefined ||
+      Number.isNaN(Number(previous.percentage))
+    ) {
+      throw new Error(
+        `Student ${student.rollNo} needs previous semester percentage.`,
+      );
     }
   });
 
